@@ -1,0 +1,2 @@
+SHA-256 (and 512 + 328)
+http://csrc.nist.gov/groups/STM/cavp/documents/shs/sha256-384-512.pdf
