@@ -1,0 +1,15 @@
+KEY QUESTIONS:
+- What is the suitable algorithm for DMA?
+- Should DMA be on tile, or integrated on all other data transferring tiles?
+(These two likely affect one another)
+*
+- How will dark silicon affect into this?
+- What about energy efficiency?
+
+
+TODO:
+- Read up on the actual switched network, routing algorithm, and the hardware. Compare with SHMAC (Will read appendix F)
+- Find proper sources on DMA, rather than wikipedia
+- Read up on related work. Ideas: Intel I7, AMD, ARM, AMD DirectGMA.
+- Begin discussing milestones.
+- Begin discussing how to split the project down into tasks, and how to implement Scrum (or something similar) (quite possible to discuss with the teachers)
