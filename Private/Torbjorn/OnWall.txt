@@ -8,7 +8,7 @@ KEY QUESTIONS:
 
 
 TODO:
-- Read up on the actual switched network, routing algorithm, and the hardware. Compare with SHMAC (Will read appendix F)
+- #1: Get fully(?) detailed information on SHMAC's interconnection network. Especially about how the tiles deal with sending data to one another.
 - Find proper sources on DMA, rather than wikipedia
 - Read up on related work. Ideas: Intel I7, AMD, ARM, AMD DirectGMA.
 - Begin discussing milestones.
