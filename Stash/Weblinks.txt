@@ -1,2 +1,5 @@
 SHA-256 (and 512 + 328)
 http://csrc.nist.gov/groups/STM/cavp/documents/shs/sha256-384-512.pdf
+
+Scrum in HW-projects:
+http://maccherone.com/larry/2010/02/23/top-10-questions-when-using-agile-on-hardware-projects/
