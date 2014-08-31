@@ -1,11 +1,15 @@
 KEY QUESTIONS:
 - What is the suitable algorithm for DMA?
-- Should DMA be on tile, or integrated on all other data transferring tiles?
-(These two likely affect one another)
+- Should DMA be on tile, or integrated on all other data transferring tiles? 
+	(answered: Only use of space matters, otherwise same principle)
 
-- How will dark silicon affect into this?
+- Does data arrive sequentially?
+- Allow store attempts outside DMA?
+- How much problem of overlapping write/read from two different processors? (General problem for the processors, I assume)
+
 - What about energy efficiency?
 - What about Cache Coherency issues?
+- Note: Must be able to adapt for virtual memory expansions to the system
 
 
 TODO:
@@ -14,7 +18,8 @@ TODO:
 	- Set up major tasks. Estimate time they take.
 	- Decide for milestones. 
 	- Begin splitting down into lesser tasks. At least for the nearest time.
-	- Decide if we go for Scrum, or not. Should discuss with teachers. NOTE: We're only 2 people, Scrum may not apply.
-- Get fully(?) detailed information on SHMAC's interconnection network. Especially about how the tiles deal with sending data to one another.
 - Find proper sources on DMA, rather than wikipedia
 - Read up on related work. Ideas: Intel I7, AMD, ARM, AMD DirectGMA.
+
+- Improve design of DMA modules. Read
+- Design a fourth scheme before thursday.
