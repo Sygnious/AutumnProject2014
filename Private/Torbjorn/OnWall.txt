@@ -2,14 +2,19 @@ KEY QUESTIONS:
 - What is the suitable algorithm for DMA?
 - Should DMA be on tile, or integrated on all other data transferring tiles?
 (These two likely affect one another)
-*
+
 - How will dark silicon affect into this?
 - What about energy efficiency?
+- What about Cache Coherency issues?
 
 
 TODO:
-- #1: Get fully(?) detailed information on SHMAC's interconnection network. Especially about how the tiles deal with sending data to one another.
+- Project organization:
+	- Review remaining time of entire project
+	- Set up major tasks. Estimate time they take.
+	- Decide for milestones. 
+	- Begin splitting down into lesser tasks. At least for the nearest time.
+	- Decide if we go for Scrum, or not. Should discuss with teachers. NOTE: We're only 2 people, Scrum may not apply.
+- Get fully(?) detailed information on SHMAC's interconnection network. Especially about how the tiles deal with sending data to one another.
 - Find proper sources on DMA, rather than wikipedia
 - Read up on related work. Ideas: Intel I7, AMD, ARM, AMD DirectGMA.
-- Begin discussing milestones.
-- Begin discussing how to split the project down into tasks, and how to implement Scrum (or something similar) (quite possible to discuss with the teachers)
