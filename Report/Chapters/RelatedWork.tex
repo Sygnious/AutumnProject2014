@@ -2,7 +2,30 @@
 This is the section for related work. 
 No, I'm not your relative. 
 Everything is relative.
-\\.
-\\
-TODO: Make sure this section is dealt with before diving too deep into theory part
 
+\section{Bitcoin Mining}
+
+Mine the bitcoin!
+
+\section{Direct Memory Access}
+
+%Todo: INSERT REFERENCE HERE, MAKE BIBLIOGRAPHY WORKING!
+INSERT REFERENCE HERE, MAKE BIBLIOGRAPHY WORKING!
+Kistler, Petrone and Petrini have published an article, NAME REF HERE. 
+In the article they explain the architecture of the Cell Multiprocessor, as well as a series of tests they ran to measure the performance of the system, with respect to the interconnection network.
+CONSIDER INSERTING IMAGES OF CELL AND THE INTERCONNECTION NETWORK?
+The Cell Multiprocessor was developed by IBM, Sony and Toshiba.
+It is the first implementation of the Cell Broadband Engine Architecture, which is a fully compatible of the 64-bit PowerPC Architecture.
+%TODO Consider quote
+TODO: Consider quote.
+Playstation 3 was its initial target, but it may also be used in other systems.
+Cell Multiprocessor is a heterogenous system, that consists of one 64-bit power processor element (PPE), eight synergistic processor elements (SPE), a high-speed memory controller and a high-bandwidth bus interface, all intergrated on a chip. 
+The PPE and the SPEs communicate through an internal highspeed element interconnect bus (EIB).
+%TODO Dropped clock and speed details for now, but change if relevant
+The PPE, which is Cell's main processor, runs the operating system, and coordinates the SPEs.
+Each SPE has a synergetic processor unit (SPU) and a memory flow controller (MFC).
+All SPUs run on SIMD instructions.
+The SPUs have no direct connection to the main memory, instead they rely on a DMA unit each.
+Whenever an SPU need access to the memory or another SPU (for either load or store), it issues a command to its DMA unit inside the MFC, and while the DMA performs the data transfer, the SPU continues executing other instructions, until the DMA signals that it is done.
+%TODO Consider the following: Figure of architecture, figure of interconnection network, consider writing detailed about DMA (Must talk with teachers), consider writing about the testing if relevant.
+TODO: CONSIDER THE FOLLOWING: FIGURE OF ARCHITECTURE, FIGURE OF INTERCONNECTION NETWRORK, CONSIDER WRITING DETAILED ABOUT DMA (MUST TALK WITH TEACHERS), CONSIDER WRITING ABOUT THE TESTING IF RELEVANT. IT ALL FALLS BACK ON HOW MUCH DETAILS ARE RELEVANT, AND HOW MUCH IS NECESSARY  
