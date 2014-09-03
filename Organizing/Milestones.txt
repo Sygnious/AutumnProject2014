@@ -1,0 +1,15 @@
+SEPTEMBER
+- 30. Decide on an implementation for the project, among several researched options
+
+OCTOBER
+
+NOVEMBER
+- 1. First version of implementation, ready for testing
+
+- 14. Final version of implementation (should we see the need for changes) + Test results
+
+- 28. First version of Report
+
+DECEMBER
+
+- 12. Final Report Deadline
