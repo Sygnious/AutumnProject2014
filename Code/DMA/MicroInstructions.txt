@@ -1,0 +1,14 @@
+Microinstructions
+
+Minimal:
+
+- Load data from range X, store at range Y
+- 	Range = Start address + Count
+- 	Does not care where in the system it is. Cares only about the two locations for data load and data store
+
+Expanded (co-operating DMAs):
+
+- Load data from range X, store at LOCAL range Y (Local DMA at storing tile)
+- Load and send data from LOCAL range to extern tile (DMA at loading tile cooperates with storing DMA)
+
+- Pass on requests/interrupts (DMA on PU tile does the initial pass on request instead of PU)

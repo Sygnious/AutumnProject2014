@@ -9,6 +9,7 @@ KEY QUESTIONS:
 
 - What about energy efficiency?
 - What about Cache Coherency issues?
+	- How does a processor know when a DMA device overwrites data it has cached?
 - Note: Must be able to adapt for virtual memory expansions to the system
 
 
@@ -21,5 +22,33 @@ TODO:
 - Find proper sources on DMA, rather than wikipedia
 - Read up on related work. Ideas: Intel I7, AMD, ARM, AMD DirectGMA.
 
-- Improve design of DMA modules. Read
 - Design a fourth scheme before thursday.
+
+http://www.google.com/patents/US7464197
+http://students.washington.edu/fidelp/misc/1.44/FAQSYS/memory/dmadoc.txt
+
+
+
+
+Question notes from PIC24F:
+- Change SRC/DST addressing by SIZE after transfer?
+- Should we allow programmable registers for different modes and addressing, ETC. ETC. ? Or hardcode everything?
+- Interrupts:
+	- Before end (to DMA)?
+	- Should have (both to and from)?
+	- At least needs (both to and from)?
+- Allow interrupts to DMA before end? What interrupts should we have? What do we at least need? (Both to and from DMA module
+- Who are allowed to trigger the DMA module?
+- Software invoke not part of task now, but should we allow a future possibility?
+- What type of restrictions may be necessary?
+- How about Load 1, store many?
+- Are triggersignals necessary (as for one-shot or repeated one-shot)?
+- Allow loadable external index?
+- What modes should we include? (At least Block-block)
+- How do we handle multiple requests?
+- General purpose DMA vs special-programmed DMA?
+- Include any type of idle mode, sleep mode, etc?
+
+
+Recommendation: Read up on the DMA controller of the Parallella/Adapteva Epiffany
+Energymicro from ARM
