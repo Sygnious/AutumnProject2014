@@ -1,3 +1,57 @@
 \chapter{Introduction}
-This is an introduction. 
-Here you will not be told about Indiana Jones and the Raiders of the lost Ark.
+
+\section{The Bitcoin Currency}
+Bitcoin is a decentralized currency using a peer-to-peer network to replace
+the financial institutions that are used to process transactions in conventional
+currency systems.
+
+The network keeps a ledger of all transactions in a linked list of blocks, called the
+block-chain. Each block contains a list of all transactions executed since the last
+block was published. Blocks are generated periodically through a process
+commonly known as ``mining''. This is due to the fact that a valid block must satisfy
+the requirement that the hash of the block header must begin with a certain number of
+zero bits, which is determined by a variable difficulty value used to limit the number
+of blocks being generated each hour\cite{bitcoin}.
+
+As an incentive to keep generating new blocks, a reward is offered on each new block
+generated. This reward is currently at 25~bitcoins (467~\$ (9.11.2014))\todo{Explain why, also fix date format}.
+
+\todo{There are many more details to write about how bitcoins work, but it's boring stuff.}
+
+\subsection{Mining Bitcoins}
+The process of creating a new block in the bitcoin network is called ``mining''. The basic
+principle of bitcoin mining is to create a block header that generates a SHA-256 hash with
+a value lower than a preset target value.
+
+The search for a valid block hash has to be done by brute-force search. The block header
+contains several fields that can be varied to produce different hashes.
+
+Mining performance is measured in hashes per second, denoted H/s.
+
+Some keywords for later:
+
+-new blocks
+
+-algorithm
+
+-network
+
+-getwork + getworktemplate (if neccessary)
+
+\subsection{Pooled Mining}
+Due to the increasing difficulty of creating new bitcoin blocks, it has become impractical
+to mine bitcoins with either commodity hardware or even specialized ASIC miners. According
+to \texttt{blockchain.info}, a website tracking the bitcoin blockchain and network, the
+total number of hashes per second in the bitcoin network is about 214 EH/s\footnote{exahashes per second, $10^18$ H/s}.
+In comparison, a single modern, high-end GPU has a hashing performance of about 800 MH/s.
+
+In order for anyone with slower hardware to still be able to earn bitcoins through mining,
+bitcoin pools were created. A mining pool allows large numbers of people to cooperate on
+finding new bitcoin blocks. When a new valid block is found, the reward is split between
+the participants based on how much work they contributed towards finding the block.
+
+- stratum protocol
+
+\subsubsection{The Stratum Protocol}
+
+
