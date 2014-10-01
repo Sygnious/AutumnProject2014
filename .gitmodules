@@ -1,0 +1,3 @@
+[submodule "Code/sha256"]
+	path = Code/sha256
+	url = git://github.com/skordal/sha256.git
