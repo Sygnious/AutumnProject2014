@@ -1,0 +1,22 @@
+DMA must have:
+(potential expansions in parantese)
+
+Input: 
+- Start address (32 bit)
+- End address (32 bit)
+- Number of data to be transfered
+- ID of requestor (may be removed, depending on scheme)
+- (stride)
+
+Transfer:
+- Data buffer
+- Count buffer
+- Buffer for storing ID of requestor (may be removed, depending on scheme)
+- (stride buffer)
+- (TLB)
+- (Multiple channels (goal: few, as 2?))
+
+Output:
+- Load requests  (same as processor, but must be recongnized as DMA module)
+- Store requests
+- Interruption to requestor

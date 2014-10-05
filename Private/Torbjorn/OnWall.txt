@@ -37,7 +37,7 @@ Question notes from PIC24F:
 	- Before end (to DMA)?
 	- Should have (both to and from)?
 	- At least needs (both to and from)?
-- Allow interrupts to DMA before end? What interrupts should we have? What do we at least need? (Both to and from DMA module
+- Allow interrupts to DMA before end? What interrupts should we have? What do we at least need? (Both to and from DMA module)
 - Who are allowed to trigger the DMA module?
 - Software invoke not part of task now, but should we allow a future possibility?
 - What type of restrictions may be necessary?
@@ -50,5 +50,7 @@ Question notes from PIC24F:
 - Include any type of idle mode, sleep mode, etc?
 
 
-Recommendation: Read up on the DMA controller of the Parallella/Adapteva Epiffany
-Energymicro from ARM
+Recommendation: Read up on the DMA controller of the Parallella/Adapteva Epiffany.
+Energymicro from ARM.
+Peripheral reflex system.
+Tilera.
