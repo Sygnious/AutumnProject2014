@@ -38,7 +38,12 @@ entity twoChannelSetUp is
 		-- Output from channels to DMA Main Controller
 		active0 : out std_logic;
 		active1 : out std_logic;
-		interruptAck : out std_logic -- Ack signal to the DMA Controller
+		interruptAck : out std_logic; -- Ack signal to the DMA Controller
+		
+		
+		-- Temporary inputs and outputs, -- CURRENTLY USED FOR TESTING
+		overrideData : in std_logic;
+		nextData : out std_logic
 		);
 end twoChannelSetUp;
 
@@ -126,7 +131,8 @@ architecture arch of twoChannelSetUp is
 		loadAdrOut : out std_logic_vector(2+(n-1) downto 0); -- Current load address for load request
 		storeAdrOut : out std_logic_vector(2+(n-1) downto 0); -- Current store address for store request
 		loadReq : out std_logic;
-		storeReq : out std_logic -- Request signal to arbiter to pass through store address to arbiter (will be passed together with data from shared buffer)
+		storeReq : out std_logic/var/folders/ld/k_w_9rb126qglcs1rkxd5x4h0000gn/T/com.apple.Preview/com.apple.Preview.PasteboardItems/PresentasjonDel2.pdf
+ -- Request signal to arbiter to pass through store address to arbiter (will be passed together with data from shared buffer)
 	
 	);
 	
@@ -261,7 +267,9 @@ begin
 		
 	);
 	
-	updateBuffer <= storeAck0 OR storeAck1; -- Whenever there is a store, the buffer must update with next data.
+	updateBuffer <= storeAck0 OR storeAck1 OR overrideData; -- Whenever there is a store, the buffer must update with next data. Currently also uses overrideData (temporarly solution for when buffer is empty)
+	
+	nextData <= updateBuffer;
 	
 end arch;
 

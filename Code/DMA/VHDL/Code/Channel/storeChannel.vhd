@@ -8,29 +8,7 @@ entity storeChannel is
 	);
 	port (
 		-- Clock
-		clk : in std_logic;
-		-- Input from DMA Main Controller
-		set : in std_logic; -- Activates setting counter, final load address, final store address (and mode)
-		SModeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Will always be '1' for this project)
-		FLAIn: in std_logic_vector(n-1 downto 0); -- Input data to FLA
-		FSAIn: in std_logic_vector(n-1 downto 0); -- Input data to FSA
-		countIn: in std_logic_vector(m-1 downto 0); -- Input data to counter
 		
-		-- Input from shared data buffer
-		dataRdy : in std_logic; -- When data in shared data buffer belongs to this channel (identified by the load address)
-		
-		-- Input from arbiter
-		storeAck : in std_logic; -- Receives ACK signal from arbiter, load data now goes through and counter is decremented
-		
-		-- Output to DMA MAin Controller (may be unnecessary, storeActive from Store Channel should suffice, since a transfer is not done until )
-		storeActive : out std_logic; -- Load Channel is active, may be used by DMA Main Controller to determine if a channel is active.
-		
-		-- Output to shared data buffer
-		loadAdrOut : out std_logic_vector((n-1) downto 0); -- Current load address corresponding with store address
-		
-		-- Output to arbiter
-		storeAdrOut : out std_logic_vector(2+(n-1) downto 0); -- Current store address
-		storeReq : out std_logic -- Request signal to arbiter to pass through store address to arbiter (will be passed together with data from shared buffer)
 		);
 end storeChannel;
 
