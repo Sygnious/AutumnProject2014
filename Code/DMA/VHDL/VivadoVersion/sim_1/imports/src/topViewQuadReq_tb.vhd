@@ -243,9 +243,14 @@ begin
         reqStore <= '0';
                                                                             
         -- Expected end results on counters: 139 loads, 139 stores, 4 interrupts, 8 blocks       
+        --wait for clock_period * 30;
+        
+        --reqStore <= '1';
+        --wait for clock_period*6;
+       -- reqstore <= '0';
                                                                                                
-        wait;                                                                                  
-                                                                                               
+        --wait;                                                                                  
+        -- 385, 385, 6                                                                                       
         -- DONE                                                                                
 		
 		

@@ -58,7 +58,8 @@ architecture controller of DMAControllerSta is
 --	signal loadAddress : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0');  -- Assumption: Starting address.
 --	signal storeAddress : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0'); -- Assumption: Starting address.
 --	signal counter : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0');
-	
+	signal set0_internal : std_logic := '0'; -- Internal version of set0
+	signal set1_internal : std_logic := '0'; -- Internal version of set1
 	
 	-- For job handeling, and recognizing who the jobs are done on behalf of
 	signal occupied : std_logic_vector (1 downto 0) := "00"; -- Occupy register, compared with channel active signals in order to know when a job is done
@@ -104,16 +105,22 @@ begin
 	requestIDInput <= reqDetails((m-1)-12	downto (m-1)-(12+6));			  -- Uses 7 next bits of reqDetails
 	FLAConvert <= std_logic_vector(unsigned(loadDetails)+unsigned(counterInput)); -- Adds Load address and counter to generate FLA
 	FSAConvert <= std_logic_vector(unsigned(storeDetails)+unsigned(counterInput)); -- Adds Store address and counter to generate FSA
-	totalActive <= activeCh1 & activeCh0; -- Concatinates active-signals from channels into single vector signal
+	--totalActive <= (activeCh1 OR set1_internal) & (activeCh0 OR set0_internal);; -- Concatinates active-signals from channels into single vector signal. Also uses set-signals due to delay from active-signals
+	totalActive(1) <= activeCh1 OR set1_internal;
+	totalActive(0) <= activeCh0 OR set0_internal;
 	workDone <= std_logic_vector(unsigned(occupied)-unsigned(totalActive)); -- Used to know when a channel is done 
 	--(difference between occupied register and active signals (1 -> 0 = work done).
 	interruptDetails <= interruptDetails_internal;
 	
+	-- Internal signals to outputs
+	set1 <= set1_internal;
+    set0 <= set0_internal;
 
 	
 	
 	-- Lower section of FSM
-	updateFSM : process(clk) -- Updating state and output signals based on next-signals
+	-- Updating state and output signals based on next-signals
+	updateFSM : process(clk, next_state, next_set0, next_set1, next_FLAOut, next_FSAOut, next_counterOut, next_interruptReq, next_interruptDetails, next_occupied, next_requestID0, next_requestID1)
 	begin
 		if rising_edge(clk) then
 			-- State
@@ -121,8 +128,11 @@ begin
 			-- Outputs
 			--reqUpdate <= next_reqUpdate;
 			
-			set0 <= next_set0;
-			set1 <= next_set1;
+			--set0 <= next_set0;
+			--set1 <= next_set1;
+			set0_internal <= next_set0;
+			set1_internal <= next_set1;
+			
 			FLAOut <= next_FLAOut;
 			FSAOut <= next_FSAOut;
 			counterOut <= next_counterOut;
