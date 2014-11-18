@@ -144,22 +144,22 @@ begin
 			if (storeReq0 = '1' AND (storeReq1 = '0' OR LRS = '1')) then -- If only channel 0 requests, or both channels but channel 1 was least recent, then choose channel 0
 				allAckOutputs <="01000";
 				adrOpt <= "001";
-				next_LRS <= '0';
+				var_LRS := '0';
 			else --(storeReq1 = '1' AND (storeReq0 = '0' OR LRS = '0')) then -- If only channel 1 requests, or both channels but channel 0 was least recent, then choose channel 1
 				allAckOutputs <="00100";
 				adrOpt <= "010";
-				next_LRS <= '1';
+				var_LRS := '1';
 			end if;
 			dataOpt <= '1';
 		elsif (loadReq0 = '1' OR loadReq1 = '1') then
 			if (loadReq0 = '1' AND (loadReq1 = '0' OR LRL = '1')) then -- If only channel 0 requests, or both channels but channel 1 was least recent, then choose channel 0
 				allAckOutputs <="00010";
 				adrOpt <= "011";
-				next_LRL <='0';
+				var_LRL :='0';
 			else --(loadReq1 = '1' AND (loadReq0 = '0' OR LRL = '0')) then -- If only channel 1 requests, or both channels but channel 0 was least recent, then choose channel 1
 				allAckOutputs <="00001";
 				adrOpt <= "100";
-				next_LRL <='1';
+				var_LRL :='1';
 			end if;
 			dataOpt <= '0';
 		else -- No requests, or other unforseen combinations that somehow does not fit into previous conditions
@@ -167,5 +167,8 @@ begin
 			adrOpt <= "---";
 			dataOpt <= '0';
 		end if;
+		next_LRL <= var_LRL;
+		next_LRS <= var_LRS;
+		
 	end process;
 end arch;

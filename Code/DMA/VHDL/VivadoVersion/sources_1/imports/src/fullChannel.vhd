@@ -11,9 +11,11 @@ entity fullChannel is
 	port (
 		-- Clock
 		clk : in std_logic;
+		reset : in std_logic;
 		-- Input from DMA Main Controller
 		set : in std_logic; -- Activates setting counter, final load address, final store address (and mode)
-		modeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Will always be '1' for this project)
+		LModeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Will always be '1' for this project)
+		SModeIn : in std_logic;
 		FLAIn: in std_logic_vector(n-1 downto 0); -- Input data to FLA
 		FSAIn: in std_logic_vector(n-1 downto 0); -- Input data to FSA
 		countIn: in std_logic_vector(m-1 downto 0); -- Input data to counter
@@ -50,6 +52,7 @@ architecture arch of fullChannel is
 	port(
 		--INPUT
 		clk : in std_logic;
+		reset : in std_logic;
 		
 		set : in std_logic;
 		LModeIn : in std_logic; 
@@ -70,8 +73,10 @@ architecture arch of fullChannel is
 	port(
 		-- INPUT
 		clk : in std_logic;
+		reset : in std_logic;
 	
-		set : in std_logic; 
+		set : in std_logic;
+		LModeIn : in std_logic; 
 		SModeIn : in std_logic; 
 		FLAIn: in std_logic_vector(n-1 downto 0); 
 		FSAIn: in std_logic_vector(n-1 downto 0); 
@@ -96,8 +101,9 @@ begin
 	loader : loadChannel
 	port map(
 		clk => clk,
+		reset => reset,
 		set => set,
-		LModeIn => modeIn,
+		LModeIn => LModeIn,
 		FLAIn => FLAIn,
 		countIn => countIn,
 		loadAck => loadAck,
@@ -110,8 +116,10 @@ begin
 	storer : storeChannel
 	port map(
 		clk => clk,
+		reset => reset,
 		set => set,
-		SModeIn => modeIn,
+		LModeIn => LModeIn,
+		SModeIn => SModeIn,
 		FLAIn => FLAIn,
 		FSAIn => FSAIn,
 		countIn => countIn,

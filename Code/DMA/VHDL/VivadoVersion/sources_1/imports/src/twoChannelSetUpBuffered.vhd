@@ -17,7 +17,8 @@ entity twoChannelSetUpBuffered is
 		-- Input from DMA Main Controller, to channels
 		set0 : in std_logic; -- Used to select and set channel 0
 		set1 : in std_logic; -- Used to select and set channel 1
-		modeIn : in std_logic; -- Sets mode in selected channel
+		LModeIn : in std_logic; -- Sets loading mode in selected channel
+		SModeIn : in std_logic; -- Sets storing mode in selected channel
 		FLAIn : in std_logic_vector(n-1 downto 0); -- Sets FLAs i selected channel
 		FSAIn : in std_logic_vector(n-1 downto 0); -- Sets FSA in selected channel
 		countIn : in std_logic_vector(m-1 downto 0); -- Sets counter in selected channel
@@ -63,7 +64,8 @@ end twoChannelSetUpBuffered;
 	signal internal_active0 : std_logic := '0';
 	signal internal_active1 : std_logic := '0';
 	
-	signal modeIn_buffered : std_logic := '0';
+	signal LModeIn_buffered : std_logic := '0';
+	signal SModeIn_buffered : std_logic := '0';
 	signal FLAIn_buffered : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0');
 	signal FSAIn_buffered : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0');
 	signal countIn_buffered : std_logic_vector(m-1 downto 0) := (m-1 downto 0 => '0');
@@ -160,9 +162,11 @@ end twoChannelSetUpBuffered;
 	port(
 		-- INPUT
 		clk : in std_logic;
+		reset : in std_logic;
 		-- From DMA Main Controller
 		set : in std_logic; -- Activates setting counter, final load address, final store address (and mode)
-		modeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Will always be '1' for this project)
+		LModeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Should always be '1' for this project)
+		SModeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Shoould always be '1' for this project)
 		FLAIn: in std_logic_vector(n-1 downto 0); -- Input data to FLA
 		FSAIn: in std_logic_vector(n-1 downto 0); -- Input data to FSA
 		countIn: in std_logic_vector(m-1 downto 0); -- Input data to counter
@@ -260,8 +264,10 @@ begin
 	channel0 : fullChannel	   
 	port map(
 		clk => clk,
+		reset => reset,
 		set => set0_buffered,
-		modeIn => modeIn_buffered,
+		LModeIn => LModeIn_buffered,
+		SModeIn => SModeIn_buffered,
 		FLAIn => FLAIn_buffered ,
 		FSAIn => FSAIn_buffered,
 		countIn => countIN_buffered,
@@ -280,8 +286,10 @@ begin
 	channel1 : fullChannel
 	port map(
 		clk => clk,
+		reset => reset,
 		set => set1_buffered,
-		modeIn => modeIn_buffered,
+		LModeIn => LModeIn_buffered,
+        SModeIn => SModeIn_buffered,
 		FLAIn => FLAIn_buffered,
 		FSAIn => FSAIn_buffered,
 		countIn => countIN_buffered,
@@ -348,6 +356,9 @@ begin
 	
 	storeOutput <= interruptAckSignal OR storeAck0 OR storeAck1 OR loadAck0 OR loadAck1; -- Whenever data passes through, bus output buffer must be notified
 	
+	-- NOTE: Using internal_activeX signals, since synthesis caused unexpected behaviour (storeOutput = '1') before first output to send out
+	--storeOutput <= interruptAckSignal OR ((storeAck0 OR loadAck0) AND internal_active0) OR ((storeAck1 OR loadAck1) AND internal_active1) ; -- Whenever data passes through, bus output buffer must be notified
+	
 	-- When databuffer empty, if new arrival: Pop it at once!						   
 	popFirstArrival : process(pushData, bufferEmpty, clk)
 	begin
@@ -361,15 +372,26 @@ begin
 	end process;
 	
 	-- UNIQUE FOR BUFFERED VERSION:
-	synchronizeInputBuffers : process(clk, set0, set1, modeIn, FLAIn, FSAIn, countIn)
+	synchronizeInputBuffers : process(clk, reset, set0, set1, SmodeIn, LModeIn, FLAIn, FSAIn, countIn)
 	begin
 	   if rising_edge(clk) then
+	       if reset = '1' then 
+                set0_buffered <= '0';         
+              set1_buffered <= '0';      
+              LModeIn_buffered <= '0';
+              SModeIn_buffered <= '0';  
+              FLAIn_buffered <= (n-1 downto 0 => '0');    
+              FSAIn_buffered <= (n-1 downto 0 => '0');    
+              countIn_buffered <= (m-1 downto 0 => '0');
+	       else
 	        set0_buffered <= set0;
             set1_buffered <= set1;
-            modeIn_buffered <= modeIn;
+            LModeIn_buffered <= LModeIn;
+            SModeIn_buffered <= SModeIn;
             FLAIn_buffered <= FLAIn;
             FSAIn_buffered <= FSAIn;
             countIn_buffered <= countIn;
+            end if;
         end if;
 	end process;
 	

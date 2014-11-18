@@ -124,6 +124,7 @@ begin
 			-- OUTPUTS
 			detailsOutput => detailsOutput,
 			dataOutput => dataOutput,
+			storeOutput => storeOutput,
 			
 			active0 => active0,
 			active1 => active1,
@@ -173,7 +174,15 @@ begin
 	STIMULUS : process
 	begin
 																																  
-		
+		wait for clock_period *4;
+             
+        -- Clear registers for tests (necessary for timing simulation)
+        reset <= '1';
+            
+        wait for clock_period * 4;
+            
+        reset <= '0';
+            
 		
 		
 		-- Test will run by initiating channel 0 after 4 cycles.

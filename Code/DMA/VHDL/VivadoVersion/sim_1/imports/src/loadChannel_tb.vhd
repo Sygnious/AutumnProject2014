@@ -15,6 +15,7 @@ architecture TB_ARCHITECTURE of loadChannel_tb is
 	port(
 		-- INPUTS
 		clk : in std_logic;
+	   reset : in std_logic;
 	
 		set : in std_logic; 
 		LModeIn : in std_logic; 
@@ -35,6 +36,7 @@ architecture TB_ARCHITECTURE of loadChannel_tb is
 
 	-- Stimulus signals - signals mapped to the input and inout ports of tested entity
 	signal clk : STD_LOGIC := '0';
+    signal reset : std_logic := '0';
 
 	-- All inputs 
 	signal FLAInput : std_logic_vector(31 downto 0) := "00000000000000001111000000000000"; --61440, Excepted start: 61420, 00000000000000001110111111101100
@@ -57,6 +59,7 @@ begin
 	UUT : loadChannel
 		port map (
 			clk => clk,
+			reset => reset,
 			set => set,
 			LModeIn => LModeInput,
 			FLAIn => FLAInput,
@@ -79,6 +82,17 @@ begin
 	
 	STIMULUS : process
 	begin
+		
+		
+		wait for clock_period *4;
+		 
+		-- Clear registers for tests (necessary for timing simulation)
+		reset <= '1';
+		
+		wait for clock_period * 4;
+		
+		reset <= '0';
+		
 		
 		wait for clock_period*4;
 		

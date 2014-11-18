@@ -9,6 +9,7 @@ entity loadChannel is
 	port (
 		-- Clock
 		clk : in std_logic;
+		reset : in std_logic;
 		-- Input from DMA Main Controller
 		set : in std_logic; -- Activates setting counter, final load address (and mode)
 		LModeIn : in std_logic; -- Input used to set counter behaviour (fixed address vs. changing address. Will always be '1' for this project)
@@ -99,7 +100,7 @@ begin
 	-- Subtract FLA with current counter value (minus 1)
 	subtractor : manSubtractor
 	port map(
-		opt => '1', -- opt => LMode -- Always '1' for this project, may be expanded to include different modes for the future
+		opt => LMode, -- Always '1' for this project, may be expanded to include different modes for the future
 		input0 => FLA,
 		input1 => countOutDcr,
 		
@@ -137,10 +138,14 @@ begin
 	-- Updating the registers: When set = '1', the DMA Main Controller sets the registers for new job 
 	-- (should not happen as long as loadActive = '1', meaning that previous job is not done)
 	-- When set = '0', the only update needed per clk is to reduce the counter register with 1 when loadAck is active (done by the nextCount signal)
-	updateRegisters : process(clk, set, LModeIn, FLAIn, countInIncr, nextCount)
+	updateRegisters : process(clk, reset, set, LModeIn, FLAIn, countInIncr, nextCount)
 	begin
 		if rising_edge(clk) then
-			if set = '1' then -- Set = '1' => Initialize the registers for next job
+		  if reset = '1' then
+		      LMode <= '0';
+		      FLA <= (n-1 downto 0 => '0');
+		      counter <= (m-1 downto 0 => '0');
+			elsif set = '1' then -- Set = '1' => Initialize the registers for next job
 				LMode <= LModeIn;
 				FLA <= FLAIn;
 				counter <= countInIncr;

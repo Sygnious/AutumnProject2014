@@ -12,23 +12,23 @@ end topViewSingleReq_tb;
 architecture TB_ARCHITECTURE of topViewSingleReq_tb is
 	-- Component declaration of the tested unit
 	component DMATopLevel
-		generic( n : integer := 32; -- 32-bit addresses
-                 m : integer := 32;
-                 u : integer := 96;    -- ReqDetails, 32 bit set as standard
-                 p : integer := 64;
-                 bufferDepth : integer := 8
-        );
+		--generic( n : integer := 32; -- 32-bit addresses
+        --         m : integer := 32;
+        --         u : integer := 96;    -- ReqDetails, 32 bit set as standard
+        --         p : integer := 64;
+        --         bufferDepth : integer := 8
+        --);
 		port(
            -- General inputs
            clk : in std_logic;
            reset : in std_logic;
            
            -- Inputs to request buffer
-           reqIn : in std_logic_vector(u-1 downto 0);
+           reqIn : in std_logic_vector(96-1 downto 0);
            reqStore : in std_logic;
            
            -- Inputs to data buffer
-           dataIn : in std_logic_vector(p-1 downto 0);
+           dataIn : in std_logic_vector(64-1 downto 0);
            dataStore : in std_logic;
            
            -- Input from output bus to channels
@@ -40,8 +40,8 @@ architecture TB_ARCHITECTURE of topViewSingleReq_tb is
            
            -- Output from DMA
            storeOutput : out std_logic;
-           detailsOut : out std_logic_vector((n+2)-1 downto 0);
-           dataOut : out std_logic_vector(n-1 downto 0)
+           detailsOut : out std_logic_vector((32+2)-1 downto 0);
+           dataOut : out std_logic_vector(32-1 downto 0)
            
            );
 		end component;

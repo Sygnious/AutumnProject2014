@@ -11,57 +11,50 @@ end twoChannelSetUpMono_tb;
 
 architecture TB_ARCHITECTURE of twoChannelSetUpMono_tb is
 	-- Component declaration of the tested unit
-	component twoChannelSetUp
-		--generic(
-		--n: integer := 32; -- Sets data and addresses
-		--m: integer := 32; -- Sets count
-		--i: integer := 34
-		--);
-		port (
-			-- Clock & reset
-			clk : in std_logic;
-			reset : in std_logic;
-			-- Input from DMA Main Controller, to channels
-			set0 : in std_logic; -- Used to select and set channel 0
-			set1 : in std_logic; -- Used to select and set channel 1
-			modeIn : in std_logic; -- Sets mode in selected channel
-			--FLAIn : in std_logic_vector(n-1 downto 0); -- Sets FLAs i selected channel
-			--FSAIn : in std_logic_vector(n-1 downto 0); -- Sets FSA in selected channel
-			--countIn : in std_logic_vector(m-1 downto 0); -- Sets counter in selected channel
-			FLAIn : in std_logic_vector(31 downto 0); -- Sets FLAs i selected channel
-            FSAIn : in std_logic_vector(31 downto 0); -- Sets FSA in selected channel
-            countIn : in std_logic_vector(31 downto 0); -- Sets counter in selected channel
-			-- Input from DMA Main Controller, directly to arbiter
-			interruptReq : in std_logic; -- Requests arbiter for access
-			--interruptCmd : in std_logic_vector(i-1 downto 0); -- Contains details of interrupt to the arbiter
-		    interruptCmd : in std_logic_vector(33 downto 0); -- Contains details of interrupt to the arbiter
-		
-			-- Input from system to data buffer
-			--dataIn : in std_logic_vector(n-1 downto 0); -- Next data
-			--loadIDIn : in std_logic_vector(n-1 downto 0); -- Next data's loadID
-			dataIn : in std_logic_vector(31 downto 0); -- Next data
-            loadIDIn : in std_logic_vector(31 downto 0); -- Next data's loadID
-			pushData : in std_logic;
-		
-			-- Input from system to arbiter (assumingly from an output buffer that may get overfed of data)
-			blockArbiter : in std_logic;
-		
-			-- Output from arbiter
-			--detailsOutput : out std_logic_vector(i-1 downto 0); -- Interrupt details, store cmd + address, or load cmd + address
-			--dataOutput : out std_logic_vector(n-1 downto 0);	-- Data for store cmd, or just 0's
-		    detailsOutput : out std_logic_vector(33 downto 0); -- Interrupt details, store cmd + address, or load cmd + address
-            dataOutput : out std_logic_vector(31 downto 0);    -- Data for store cmd, or just 0's
-		    
-		    -- Output from system to receiving buffer at bus system
-            storeOutput : out std_logic;
-		      
-			-- Output from channels to DMA Main Controller
-			active0 : out std_logic;
-			active1 : out std_logic;
-		
-			interruptAck : out std_logic -- Ack signal to the DMA Controller from arbiter
-			);
-		end component;
+	component twoChannelSetUpBuffered
+            --generic(
+            --n: integer := 32; -- Sets data and addresses
+            --m: integer := 32; -- Sets count
+            --i: integer := 34
+            --);
+            port (
+                -- Clock & reset
+                clk : in std_logic;
+                reset : in std_logic;
+                -- Input from DMA Main Controller, to channels
+                set0 : in std_logic; -- Used to select and set channel 0
+                set1 : in std_logic; -- Used to select and set channel 1
+                LModeIn : in std_logic; -- Sets mode in selected channel
+                SModeIn : in std_logic; -- Sets mode in selected channel
+                FLAIn : in std_logic_vector(32-1 downto 0); -- Sets FLAs i selected channel
+                FSAIn : in std_logic_vector(32-1 downto 0); -- Sets FSA in selected channel
+                countIn : in std_logic_vector(32-1 downto 0); -- Sets counter in selected channel
+                -- Input from DMA Main Controller, directly to arbiter
+                interruptReq : in std_logic; -- Requests arbiter for access
+                interruptCmd : in std_logic_vector(34-1 downto 0); -- Contains details of interrupt to the arbiter
+            
+                -- Input from system to data buffer
+                dataIn : in std_logic_vector(32-1 downto 0); -- Next data
+                loadIDIn : in std_logic_vector(32-1 downto 0); -- Next data's loadID
+                pushData : in std_logic;
+            
+                -- Input from system to arbiter (assumingly from an output buffer that may get overfed of data)
+                blockArbiter : in std_logic;
+            
+                -- Output from arbiter
+                detailsOutput : out std_logic_vector(34-1 downto 0); -- Interrupt details, store cmd + address, or load cmd + address
+                dataOutput : out std_logic_vector(32-1 downto 0);    -- Data for store cmd, or just 0's
+            
+               -- Output from system to receiving buffer at bus system
+                storeOutput : out std_logic;
+            
+                -- Output from channels to DMA Main Controller
+                active0 : out std_logic;
+                active1 : out std_logic;
+            
+                interruptAck : out std_logic -- Ack signal to the DMA Controller from arbiter
+                );
+            end component;
 
 	-- Stimulus signals - signals mapped to the input and inout ports of tested entity
 	signal clk : STD_LOGIC := '0';
@@ -72,7 +65,8 @@ architecture TB_ARCHITECTURE of twoChannelSetUpMono_tb is
 	signal FLAInput : std_logic_vector(31 downto 0) := "00000000000000001111000000000000"; --61440, Excepted start: 61420, 00000000000000001110111111101100
 	signal FSAInput : std_logic_vector(31 downto 0) := "11001100110011001100110011001100"; --6871947672, Excepted start: 6871947652, 110011001100110011001100110000100
 	signal countInput : std_logic_vector(31 downto 0) := "00000000000000000000000000010100"; -- 20
-	signal modeInput : std_logic := '1'; -- Currently always same mode in channels, manSubtractor is set to '1' in current implementation
+	signal LModeInput : std_logic := '1'; -- Currently always same mode in channels, manSubtractor is set to '1' in current implementation
+	signal SModeInput : std_logic := '1';
 	signal set0 : std_logic := '0';
 	signal set1 : std_logic := '0'; -- Not used
 	
@@ -107,20 +101,21 @@ architecture TB_ARCHITECTURE of twoChannelSetUpMono_tb is
 begin
 	
 	-- Unit Under Test port map
-	UUT : twoChannelSetUp
-	  -- generic map(
-	  --     n => 32,
+	UUT : twoChannelSetUpBuffered
+	 --  generic map(
+	 --      n => 32,
 	 --      m => 32,
-	  --     i => 34
-	   
-	  -- );
+	 --     i => 34
+	 --  
+	 --  )
 		port map (
 			-- INPUTS
 			clk => clk,
 			reset => reset,
 			set0 => set0,
 			set1 => set1,
-			ModeIn => modeInput,
+			LModeIn => LModeInput,
+			SModeIn => SModeInput,
 			FLAIn => FLAInput,
 			FSAIn => FSAInput,
 			countIn => CountInput,
@@ -137,6 +132,8 @@ begin
 			-- OUTPUTS
 			detailsOutput => detailsOutput,
 			dataOutput => dataOutput,
+			storeOutput => storeOutput,
+			
 			
 			active0 => active0,
 			active1 => active1,
@@ -180,6 +177,16 @@ begin
 	
 	STIMULUS : process
 	begin
+		
+		wait for clock_period *4;
+             
+        -- Clear registers for tests (necessary for timing simulation)
+        reset <= '1';
+            
+        wait for clock_period * 4;
+            
+        reset <= '0';
+            
 		
 		-- Test will run by initiating channel 0 after 4 cycles
 		-- FLA, FSA and Count inputs are already set by using default values for the input signals in this test

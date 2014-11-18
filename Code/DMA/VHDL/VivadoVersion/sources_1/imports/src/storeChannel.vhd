@@ -10,8 +10,10 @@ entity storeChannel is
 		-- INPUTS
 		-- Clock
 		clk : in std_logic;
+		reset : in std_logic;
 		-- From DMA Main Controller
 		set : in std_logic; 
+		LModeIn : in std_logic;
 		SModeIn : in std_logic; 
 		FLAIn: in std_logic_vector(n-1 downto 0); 
 		FSAIn: in std_logic_vector(n-1 downto 0); 
@@ -39,6 +41,7 @@ end storeChannel;
 architecture arch of storeChannel is
 	
 	-- Registers:
+	signal LMode : std_logic := '1';
 	signal SMode : std_logic := '1';
 	signal FLA : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0'); -- FLA = Final Load Address. Usually the final address for the loading. The value in the counter will adjust to the current address. In this case used for identifying the data in shared data buffer, as our own or not.
 	signal FSA : std_logic_vector(n-1 downto 0) := (n-1 downto 0 => '0'); -- FSA = Final Store Address. Usually the final address for the storing. The value in the vounter will adjust to the current address.
@@ -110,7 +113,7 @@ begin
 	-- Subtract FLA with current counter value (minus 1)
 	FLAsubtractor : manSubtractor
 	port map(
-		opt => '1', -- opt => LMode -- Always '1' for this project, may be expanded to include different modes for the future
+	   opt => LMode, -- Always '1' for this project, may be expanded to include different modes for the future
 		input0 => FLA,
 		input1 => countOutDcr,
 		
@@ -120,7 +123,7 @@ begin
 	-- Subtract FSA with current counter value (minus 1)
 	FSAsubtractor : manSubtractor
 	port map(
-		opt => '1', -- opt => SMode -- Always '1' for this project, may be expanded to include different modes for the future
+		opt => SMode, -- Always '1' for this project, may be expanded to include different modes for the future
 		input0 => FSA,
 		input1 => countOutDcr,
 		
@@ -157,7 +160,14 @@ begin
 	updateRegisters : process(clk, set, SModeIn, FLAIn, FSAIn, countInIncr, nextCount)
 	begin
 		if rising_edge(clk) then
-			if set = '1' then -- Set = '1' => Initialize the registers for next job
+		  if reset = '1' then
+		      LMode <= '0';
+		      SMode <= '0';
+              FLA <= (n-1 downto 0 => '0');
+              FSA <= (n-1 downto 0 => '0');
+              counter <= (m-1 downto 0 => '0');
+	       elsif set = '1' then -- Set = '1' => Initialize the registers for next job
+				LMode <= LModeIn;
 				SMode <= SModeIn;
 				FLA <= FLAIn;
 				FSA <= FSAIn;
