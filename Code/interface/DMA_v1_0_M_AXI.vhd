@@ -159,8 +159,7 @@ architecture implementation of DMA_v1_0_M_AXI is
 	signal start_write : std_logic;
 	signal start_read : std_logic;
 	
-	signal read_error, write_error : std_logic;
-	signal adjusted_address : std_logic_vector(31 downto 0);
+	signal write_error : std_logic;
 
 begin
 
@@ -267,13 +266,14 @@ begin
 	begin
 		if rising_edge(m_axi_aclk) then
 			if m_axi_aresetn = '0' or start_read = '1' then
-				axi_rready <= '1'; -- Always ready for data, yay
+				--axi_rready <= '1'; -- Always ready for data, yay
+				axi_rready <= '1';
 			else
-				if m_axi_rvalid = '1' and axi_rready = '0' then -- Data received!
+				if m_axi_rvalid = '1' and axi_rready = '1' then -- Data received!
 					read_data <= m_axi_rdata;
-					axi_rready <= '1';
-				elsif axi_rready = '1' and m_axi_rvalid = '1' then -- Acknowledge data reception
 					axi_rready <= '0';
+				--else
+				--	axi_rready <= '0';
 				end if;
 			end if;
 		end if;
@@ -281,17 +281,18 @@ begin
 
 	-- Write errors are signaled in bit 1 of the bresp signal:
 	write_error <= axi_bready and m_axi_bvalid and m_axi_bresp(1);
-	-- Read errors are signaled in bit 1 of the rresp signal:
-	read_error <= axi_bready and m_axi_bvalid and m_axi_rresp(1);
-
-	-- Adjust for word/byte addressing:
-	adjusted_address <= dma_output_dest(31 downto 12) & std_logic_vector(shift_left(unsigned(dma_output_dest(11 downto 0)), 2));
 
 	-- DMA master interface state machine:
 	master_process: process(m_axi_aclk, m_axi_aresetn)
 	begin
 		if m_axi_aresetn = '0' then
 			state <= STATE_IDLE;
+			start_write <= '0';
+			start_read <= '0';
+			read_issued <= '0';
+			write_issued <= '0';
+			dma_interrupt_out <= '0';
+			dma_data_store <= '0';
 		elsif rising_edge(m_axi_aclk) then
 			case state is
 				when STATE_IDLE =>
@@ -303,11 +304,11 @@ begin
 						master_busy <= '1';
 						case dma_output_cmd is
 							when b"00" => -- Load
-								read_address <= adjusted_address;
+								read_address <= dma_output_dest;
 								dma_data_out_addr <= dma_output_dest;
 								state <= STATE_READ;
 							when b"01" => -- Store
-								write_address <= adjusted_address;
+								write_address <= dma_output_dest;
 								write_data <= dma_output_data;
 								state <= STATE_WRITE;
 							when b"10" | b"11" => -- Interrupt
@@ -326,7 +327,7 @@ begin
 					if axi_arvalid = '0' and m_axi_rvalid = '0' and start_read = '0' and read_issued = '0' then
 						start_read <= '1';
 						read_issued <= '1';
-					elsif axi_rready = '1' then -- Read finished!
+					elsif m_axi_rvalid = '1' and read_issued = '1' then-- and read_issued = '1' then -- Read finished!
 						read_issued <= '0';
 						start_read <= '0';
 						dma_data_store <= '1';
@@ -341,6 +342,7 @@ begin
 						write_issued <= '1';
 					elsif axi_bready = '1' then -- Write finished!
 						write_issued <= '0';
+						start_write <= '0';
 						state <= STATE_IDLE;
 					else
 						start_write <= '0';
