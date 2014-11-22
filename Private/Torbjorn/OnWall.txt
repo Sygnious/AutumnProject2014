@@ -54,3 +54,35 @@ Recommendation: Read up on the DMA controller of the Parallella/Adapteva Epiffan
 Energymicro from ARM.
 Peripheral reflex system.
 Tilera.
+
+
+
+
+Questions after the drafts:
+- Does every load have internal src ID? YES
+- OK to add extra ID-bit for DMA instead of processor?
+- Something about Interrupt signals I cannot remember 
+- Quick question: How to gain broadcast access?
+- Resources: How to compile and run on moog DONE
+- The board we use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
