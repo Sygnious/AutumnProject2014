@@ -5,7 +5,7 @@
 \subsection{Test Setup}
 In order to evaluate the performance increase obtained when using a dedicated
 hashing accelerator, a test system was constructed using Xilinx' Vivado
-development studio. An overview can be seen in figure \ref{fig:testsystem-vivado}.
+development studio.
 
 \begin{figure}[ht]
 	\includegraphics[width=0.95\textwidth]{Figures/testsystem-vivado.png}
@@ -86,9 +86,9 @@ hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
 complete, bringing the maximum theoretical performance down to at most 378787~H/s.
 
 However, in a real system, there are many additional sources of overhead reducing
-the performance additionally.\todo{We'll reorganize this later, I wrote this before I pulled in the stuff below}
+the performance additionally.\todo{Maybe move this somewhere else}
 
-\section{Testing and verification of DMA Module}
+\section{Verification of DMA Module}
 The DMA Module is tested by first testing individual components, then their interaction with each other.
 
 In the individual testing, the component receives different combinations of the inputs as the time passes.
@@ -139,5 +139,3 @@ The interaction tests are:
     \todo{HHHHHHMMMMMMM!!!!!}A word of warning: It turns out in the tests that for each round of blocks, the block counter counts one block less than the number of cycles a block is active. It still turns out, when analysing the signals, that the module is inactive in correct number of cycles as long as the block signal is active, the block counter merely does not count for the first cycle during a block. Since this is considered a flaw with the test itself, and not with the DMA Module, the error is considered negligable. 
 \end{itemize}
 
-\todo{Write about testing with the c-coding (ordering a data transfer), and running on FPGA}
-KRISTIAN HERE

@@ -1,13 +1,11 @@
 \chapter{Theory}
-This is theory.
-Have you seen my latest boat?
-Kontiki-V!
 
 \section{Cryptographic Hashing}
 
 A cryptographic hash function, also commonly referred to as a digital signature or
 a message digest, is a function that takes input data of varying size and
-produces an output value of a constant size\cite{hashing-overview}. % That article is a pain to read
+produces an output value of a constant size\cite{hashing-overview}.
+% That article is a pain to read, it pains me to cite it
 
 Cryptographic hash functions are designed to be one-way, meaning it should
 be computationally not feasible to find the input data given the hash value,
@@ -125,33 +123,27 @@ contains several fields that can be varied to produce different hashes.
 
 Mining performance is measured in hashes per second, denoted H/s.
 
-Some keywords for later:
+%Some keywords for later:
+%-new blocks
+%-algorithm
+%-network
+%-getwork + getworktemplate (if neccessary)
 
--new blocks
-
--algorithm
-
--network
-
--getwork + getworktemplate (if neccessary)
-
-\subsection{Pooled Mining}
-Due to the increasing difficulty of creating new bitcoin blocks, it has become impractical
-to mine bitcoins with either commodity hardware or even specialized ASIC miners. According
-to \texttt{blockchain.info}, a website tracking the bitcoin blockchain and network, the
-total number of hashes per second in the bitcoin network is about 214 EH/s\footnote{exahashes per second, $10^18$ H/s}.
-In comparison, a single modern, high-end GPU has a hashing performance of about 800 MH/s.
-
-In order for anyone with slower hardware to still be able to earn bitcoins through mining,
-bitcoin pools were created. A mining pool allows large numbers of people to cooperate on
-finding new bitcoin blocks. When a new valid block is found, the reward is split between
-the participants based on how much work they contributed towards finding the block.
-
-- stratum protocol
+%\subsection{Pooled Mining}
+%Due to the increasing difficulty of creating new bitcoin blocks, it has become impractical
+%to mine bitcoins with either commodity hardware or even specialized ASIC miners. According
+%to \texttt{blockchain.info}, a website tracking the bitcoin blockchain and network, the
+%total number of hashes per second in the bitcoin network is about 214 EH/s\footnote{exahashes per second, $10^18$ H/s}.
+%In comparison, a single modern, high-end GPU has a hashing performance of about 800 MH/s.
+%
+%In order for anyone with slower hardware to still be able to earn bitcoins through mining,
+%bitcoin pools were created. A mining pool allows large numbers of people to cooperate on
+%finding new bitcoin blocks. When a new valid block is found, the reward is split between
+%the participants based on how much work they contributed towards finding the block.
+%
+%- stratum protocol
 
 \section{Direct Memory Access (DMA)}
-
-Torbjørn deals with this one
 
 \subsubsection{Brief history of DMA}
 
