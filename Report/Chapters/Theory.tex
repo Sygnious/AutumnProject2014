@@ -143,6 +143,38 @@ Mining performance is measured in hashes per second, denoted H/s.
 %
 %- stratum protocol
 
+\subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
+
+The hashing modules can finish one round of hashing in 65 clock cycles. If
+every hash can be obtained from only one block of data, it is possible to
+obtain a hash every 65 clock cycles under ideal conditions. This translates
+into a maximum theoretical performance of 768230~H/s at a clock frequency of
+50~MHz.
+
+However, the modules do not exist in a vacuum, and data needs to be transferred
+between the modules and a controller, such as a microprocessor. The hashing tiles
+are connected to the rest of the system using an AXI4 lite interface. Transfers
+on the AXI bus takes at least three cycles for writes and two cycles for reads,
+if it is assumed that no burst transfers are used\footnote{Indeed, the AXI4 lite
+interface only allows burst lengths of one word, in essence no burst transfer is
+supported.}
+
+In order for the hashing module to word, it needs 16 32-bit words of input data,
+and control signals must be set up. This causes at least 17 words of data to
+need to be written to the module, taking at least 51 clock cycles. Then, after
+hashing of a block is complete, if there are no more blocks, the result must
+be read back. The result consists of 8 words of data, which takes at least 16
+clock cycles to transfer.
+
+In total, a minimum of 67 clock cycles of overhead is needed per hash when assuming
+a one-block input size and an ideal AXI4 bus. Not considering the additional overhead
+from processing in the microprocessor, such as when handlig the interrupt when the
+hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
+complete, bringing the maximum theoretical performance down to at most 378787~H/s.
+
+However, in a real system, there are many additional sources of overhead reducing
+the performance additionally.
+
 \section{Direct Memory Access (DMA)}
 
 \subsubsection{Brief history of DMA}
