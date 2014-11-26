@@ -88,7 +88,9 @@ complete, bringing the maximum theoretical performance down to at most 378787~H/
 However, in a real system, there are many additional sources of overhead reducing
 the performance additionally.\todo{Maybe move this somewhere else}
 
-\section{Verification of DMA Module}
+\section{Verification and testing of DMA Module}
+
+\subsection{Functional testing}
 The DMA Module is tested by first testing individual components, then their interaction with each other.
 
 In the individual testing, the component receives different combinations of the inputs as the time passes.
@@ -139,3 +141,18 @@ The interaction tests are:
     \todo{HHHHHHMMMMMMM!!!!!}A word of warning: It turns out in the tests that for each round of blocks, the block counter counts one block less than the number of cycles a block is active. It still turns out, when analysing the signals, that the module is inactive in correct number of cycles as long as the block signal is active, the block counter merely does not count for the first cycle during a block. Since this is considered a flaw with the test itself, and not with the DMA Module, the error is considered negligable. 
 \end{itemize}
 
+
+\subsection{Testing performance of DMA Module}
+
+In the system set up for this project, a load takes at least 2 cycles, and a store takes at least 3 cycles.
+Branching and incrementation takes at least 1 cycle each.
+For M data, the total transfer for the CPU takes at least 
+\\ (3 + 2 + 1 + 1) * M = 7M cycles, for the loop only.
+\\ If a DMA module is present, it can relieve the CPU for this work, letting the CPU focus on another work, saving it 7M cycles for each transfer, with exception of overhead, such as activating the DMA Module and handling interrupts when done.
+In addition, a well designed DMA Module may have less overhead, enabling better \todo{With more than one channel active, a transfer does not necessarily become faster by itself} throughtput.
+
+A program with M data to be transfered will be used, and the number of clock cycles spent on other work than data transfer for the CPU will be measured.
+A comparison with running with and wihtout DMA Module will be done, to see the CPU can spend at least 7M more cycles of work on other tasks.
+This does not include data loads/stores the CPU needs for itself.
+
+In addition, the hashing module will be tested with using the DMA Module for data transfer, to see if adding DMA Module improves the overall performance for the hashing module.

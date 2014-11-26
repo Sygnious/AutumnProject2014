@@ -1,8 +1,21 @@
 \chapter{DMA Architecture}
 
 \section{DMA, chosen principles}
-General ideas that doesn't fit into architecture
 
+\subsection{Assumptions for the project}
+All data are transfered sequential, due to the \todo{This is SHMAC specific. Reconsider} XY routing that is implemented.
+Data does not arrive out of order.
+
+\subsection{Chosen properties / principles}
+
+List up all DMA properties that have been chosen for this project.
+Initial list:
+\begin{itemize}
+    \item Block to block loading
+    \item Two channels
+    \item Component based implementation. Explain why.
+    \item One does not simply design a DMA solution into Mordor!
+\end{itemize}
 
 \section{DMA Architecture}
 In this chapter, the architectural design for the DMA module will be presented.
@@ -368,3 +381,32 @@ Using a separate signal solves this issue.
 \subsection{Bus interaction system}
 Write about master interface and slave interface
 
+\section{Alternatives to the design} 
+
+\todo{Consider making diagrams to show the alternative}
+
+\subsection{Less components}
+It is possible to remove some of the main components from the DMA Module and still have a functional DMA Module.
+The request buffer and the DMA State Machine could be removed, and connect the channels directly to the slave interface.
+If the registers in the slave interface is set for activation, the signals could then be fed directly to the channels.
+
+This would reduce the number of cycles that is needed to process a request.
+The system would also be smaller, having less combinatorics and registers.
+
+On the other hand, this makes the DMA Module much more dependent on the external system, since requests are processed and set externally, not by the DMA Module itself.
+Futhermore, removing the controller also constricts the possibility for the DMA Module itself to be able to process different types of requests.
+In the minimum case, the only requests that it needs to handle are data transfer requests.
+But if the DMA Module is implemented in the SHMAC system, and one wants an as efficient data transfer as possible, one have to consider the option of dynamicly forwarding the request.
+An example would be forwarding to the DMA Module that is \todo{Mentioned in chapter 3.5.1., see figure 3.3} closest to both source and destination.
+
+Part of the purpose with the design is to make the DMA Module generic, so that it can implemented in different systems.
+A controller, and a request buffer in case of multiple requests is therefore essential.
+All it needs is for input to arrive correctly.
+
+\subsection{Channels with private data buffer}
+Instead of using a channel with shared data buffer, where the data output owned by one of the channels is sent straight through the arbiter, it could be sent to a private buffer inside the correct channel.
+
+\todo{Expand when you wake up from bed. Good night}
+Pros: Secure data
+
+Cons: More unnecessary combinatorics + no better throughput
