@@ -1,4 +1,22 @@
 \chapter{Results}
-This is results.
-Unfortunately, there are no results to be shown.
-HA-HA.
+
+Two measurements were made in order to evaluate the performance of the hashing accelerator.
+The number of hashes per second were measured both when using a DMA for data transfer
+between RAM and the hashing tile and when not using a DMA. The results are compared
+to a software implementation of the algorithm running on the MCU.
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Methodology} & \textbf{Result} \\
+		\hline
+		Software & TBD \\
+		Hardware without DMA & 16~196~H/s\\
+		Hardware with DMA & 12~240~H/s\\
+		\hline
+	\end{tabular}
+
+	\caption{Test results}
+\end{table}
+
