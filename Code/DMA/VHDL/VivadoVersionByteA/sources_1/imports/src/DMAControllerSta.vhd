@@ -103,8 +103,10 @@ begin
 	-- Setting up combinatoric signals
 	counterInput <= (n-1 downto 12 => '0') & reqDetails(m-1 downto (m-1)-11); -- Uses 0's & 12 first bits of reqDetails
 	requestIDInput <= reqDetails((m-1)-12	downto (m-1)-(12+6));			  -- Uses 7 next bits of reqDetails
-	FLAConvert <= std_logic_vector(unsigned(loadDetails)+unsigned(counterInput)); -- Adds Load address and counter to generate FLA
-	FSAConvert <= std_logic_vector(unsigned(storeDetails)+unsigned(counterInput)); -- Adds Store address and counter to generate FSA
+	--FLAConvert <= std_logic_vector(unsigned(loadDetails)+unsigned(counterInput)); -- Adds Load address and counter to generate FLA
+	--FSAConvert <= std_logic_vector(unsigned(storeDetails)+unsigned(counterInput)); -- Adds Store address and counter to generate FSA
+	FLAConvert <= std_logic_vector(unsigned(loadDetails)+unsigned(counterInput)*4); -- Adds Load address and counter to generate FLA
+	FSAConvert <= std_logic_vector(unsigned(storeDetails)+unsigned(counterInput)*4); -- Adds Store address and counter to generate FSA
 	--totalActive <= (activeCh1 OR set1_internal) & (activeCh0 OR set0_internal);; -- Concatinates active-signals from channels into single vector signal. Also uses set-signals due to delay from active-signals
 	totalActive(1) <= activeCh1 OR set1_internal;
 	totalActive(0) <= activeCh0 OR set0_internal;
