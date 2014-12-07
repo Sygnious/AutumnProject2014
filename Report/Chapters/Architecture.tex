@@ -1,397 +1,121 @@
-\chapter{DMA Architecture}
+\chapter{Architecture}
 
-\section{DMA, chosen principles}
+\section{Design of the Hashing Accelerator}
 
-\subsection{Assumptions for the project}
-All data are transfered sequential, due to the \todo{This is SHMAC specific. Reconsider} XY routing that is implemented.
-Data does not arrive out of order.
+Write about the hashing accelerator architecture here.
 
-\subsection{Chosen properties / principles}
+\subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
 
-List up all DMA properties that have been chosen for this project.
-Initial list:
-\begin{itemize}
-    \item Block to block loading
-    \item Two channels
-    \item Component based implementation. Explain why.
-    \item One does not simply design a DMA solution into Mordor!
-\end{itemize}
+The hashing modules can finish one round of hashing in 65 clock cycles. If
+every hash can be obtained from only one block of data, it is possible to
+obtain a hash every 65 clock cycles under ideal conditions. This translates
+into a maximum theoretical performance of 768230~H/s at a clock frequency of
+50~MHz.
 
-\section{DMA Architecture}
-In this chapter, the architectural design for the DMA module will be presented.
-This includes both the full organisation of the components, and detailed description about each component. 
-For this project, a component-based approach has been chosen.
-Individual components are designed and tested on their own, and may be replaced with solutions that may prove more optimal for future preferences.
-For one component, all other components are treated like black boxes.
-If one component is replaced, it's outward behaviour and interface with other components should not change.
+However, the modules do not exist in a vacuum, and data needs to be transferred
+between the modules and a controller, such as a microprocessor. The hashing tiles
+are connected to the rest of the system using an AXI4 lite interface. Transfers
+on the AXI bus takes at least three cycles for writes and two cycles for reads.
+It is assumed that no burst transfers are used and that only one transaction
+can be executed at a time, corresponding with the requirements for the interface.
 
-\subsection{Top Overview}
-The DMA module consists of several main components: FIFO buffer that contains requests, a DMA main controller that processes the requests, an adapter to interface between the FIFO buffer and the and a two-channel setup where the memory transfers are executed. 
-The two-channel setup is a sub-part of the DMA module that consists of several sub-components.
-These are two channels that may work on independent transfer tasks, an arbiter that selects the next output from the DMA Module, a FIFO buffer that contains loaded data coupled with their load addresses, and a comparator that helps the channels to identify the next data they are waiting for, for storing.
+In order for the hashing module to work, it needs 16 32-bit words of input data,
+and control signals must be set up. This causes at least 17 words of data to
+need to be written to the module, taking at least 51 clock cycles. Then, after
+hashing of a block is complete, if there are no more blocks, the result must
+be read back. The result consists of 8 words of data, which takes at least 16
+clock cycles to transfer.
 
-The entire DMA Module's topview architecture can be seen in 
-\ref{fig:DMATopView}.
+In total, a minimum of 67 clock cycles of overhead is needed per hash when assuming
+a one-block input size and an ideal AXI4 bus. Not considering the additional overhead
+from processing in the microprocessor, such as when handlig the interrupt when the
+hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
+complete, bringing the maximum theoretical performance down to at most 378787~H/s.
 
-\begin{figure}[h!]
+
+\section{Design of the DMA Module}
+\label{sec:dma-architecture}
+
+\subsection{Assumptions}
+To simplify the design of the DMA module, some assumptions as to the system where the
+DMA is implemented needs to be done.
+
+It is assumed that all data is transferred sequentially. This is especially important when
+it comes to future integration into the SHMAC system, because of the XY routing that the
+system uses. However, such an assumption also significantly simplifies the design of the
+DMA for use in shared-bus systems.
+
+\subsection{Design requirements}
+
+It was decided on a couple of requirements for the DMA implementation.
+
+\begin{description}
+	\item[Use block-to-block transfers.] This is a minimum requirement for being
+	able to transfer any amount of data from location A to B.
+	\item[Two channels.] This allows the DMA to have two separate transfers going
+	at the same time.
+	\item[Automatic channel allocation.] Channel allocation is done in hardware,
+	saving the CPU from the overhead of allocating and managing channels in software.
+	% I removed component-based implementation, because _every_ hardware design is component based. -K.
+\end{description}
+
+\subsection{DMA Architecture}
+The DMA module consists of several main components: a FIFO buffer that contains transfer
+requests from the CPU, a main controller that processes the requests, and two channels
+where the memory transfers are executed. The two channels work on independent transfer
+tasks. An arbiter is used to control access to the bus interface for the two channels.
+An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView}.
+\todo{CNTR = counter --- CTRL = controller, please fix the figure}
+
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/DMA/TopViewFinalSimple}
-    \caption{DMA Module topview}
+    \caption{DMA module overview}
     \label{fig:DMATopView}
 \end{figure}
 
-\todo{Perhaps show in the figure what is input, and what is output}
-The figure is shows simplified overview in the aspect that it shows the components and their connections to each other, but details on the communication signals and arithmatics are omitted for simplicity. 
+\subsubsection{Main Controller}
+The role of the main controller is to process incoming transfer requests, allocate and activate
+channels that are free to execute requests, monitor the channels, and send out an interrupt signal
+when a transfer is completed. 
 
-\subsection{DMA Controller}
-The role of the DMA Controller is to process incoming transfer requests, activate channels that are free to execute requests, monitor the channels, and send out interrupt signal to the requestor when a transfer request is completed. 
-The DMA Controller is implemented as a state machine, shown in figure \ref{fig:DMAControllerStateMachine}.
+The controller is implemented as a simple state machine, shown in figure \ref{fig:DMAControllerStateMachine}.
 
-\begin{figure}[h!]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/DMA/StateMachineFinal}
     \caption{DMA Controller State Machine}
     \label{fig:DMAControllerStateMachine}
 \end{figure}
 
-\subsubsection{States}
-The current states are IDLE, PROCESSING, WAIT and INTERRUPT.
-
-\begin{itemize}
-    \item \textbf{IDLE} - When there are no requests for data transfer.
-    The DMA Controller waits until a request signal is received.
-    \item \textbf{PROCESSING} - When the controller has received a request, and there is a free channel to execute the request.
-    Outputs from the DMA Main controller to a free channel is transfered, activating the channel.
-    \item \textbf{WAITING} - When both channels are active and there are no more room for new requests to be processed, or when there are no more requests to process while there are still channels active.
-    \item \textbf{INTERRUPT} - When a channel is finished with execution and no longer active, the DMA Main Controller will request the arbiter to send out interrupt request.
-    Until the arbiter acknowledges the request, the controller will remain in this state, and no new requests will be processed until done.
-    When acknowledged, the controller will send out an interrupt signal with necessary details, such as the ID of the requestor.  
-\end{itemize}
-
-\subsubsection{Inputs}
-The DMA controller have the following inputs:
-
-\begin{itemize}
-    \item \textbf{clk} - Input clock signal
-    \item \textbf{reset} - Reset signal that reverts state machine back to idle
-    \item \textbf{req} - Input request signal for transferring data.
-    \item \textbf{loadDetails} - The beginning 32-bit loading address
-    \item \textbf{storeDetails} - The beginning 32-bit storing address
-    \item \textbf{reqDetails} - 32-bit details relevant for the transfer.
-    Contains count, which is used for both offset and counting down the execution to finish, and ID-number of the requestor, which is used in the interrupt signal.
-    \item \textbf{activeCh0} - Monitoring signal from channel 0, signalizing that it is currently active.
-    \item \textbf{activeCh1} - Same as activeCh0, but for channel 1.
-    \item \textbf{interruptAck} - Signal from arbiter that the DMA Controller has access to send out interrupt signal from the system.
-\end{itemize}
-
-\subsubsection{Outputs}
-These are the following output signals from the DMA controller
-
-\begin{itemize}
-    \item \textbf{reqUpdate} - Signal to acknowledge the received data transfer request (req) and its details, so that next request may be received.
-    Used in facilitating pop-signals at the Request FIFO buffer.
-    \item \textbf{FLAOut} - 32-bit FLA (Final Load Address) output sent to channels.
-    Calculated by adding loadDetails with count.
-    \item \textbf{FSAOut} - 32-bit FSA (Final Soad Address) output sent to channels.
-    Calculated by adding storeDetails with count.
-    \item \textbf{coutnerOut} - 32-bit counter output sent to channels.
-    \item \textbf{set0} - Signal used to activate channel 0 and store FLA, FSA and counter data to it.
-    \item \textbf{set1} - Same as set0, but for channel 1.
-    \item \textbf{interruptReq} - Request signal to the arbiter for sending out interrupt
-    \item \textbf{interruptDetails} - 34-bit interrupt details, sent out of the DMA Topmodule when the controller requests the arbiter for access, and is acknowledged.
-    Contains 2 bits to recognize interrupt with values are 11, and contains ID of the transfer requestor. 
-    These make up 7 bits. 
-    The other bits are currently not in use.
-\end{itemize}
-
-\subsubsection{Internal registers and signals}
-The DMA controller also have some internal registers and signals.
-These are:
-
-\begin{itemize}
-    \item \textbf{Occupied} - A 2-bit register, with each bit representing a channel each.
-    When the DMA controller activates a channel, it also sets the corresponding bit in the occupied-register to '1'.
-    The occupied-register is compared with the incoming active-signals from the channels.
-    Whenever a channel finishes and deactivates, there is a difference bewteen the active signals and the occupied-register, and the controller compares the values and the active signals to determine which channel has finished.
-    \item \textbf{RequestID0} - A 7-bit register, containing the ID of the requestor of the transfer currently being executed in channel 0.
-    The ID is included in the interrupt signal the DMA controller sends out when the transfer is done executing in channel 0.
-    \item \textbf{RequestID1} - Same as RequestID0, but for channel 1.
-    \item \textbf{totalActive} - A 2-bit signal concatinating both active signals.
-    The DMA Controller needs the active signals immediately when set-signals are sent out to function properly, yet there is a cycle delay from the current channel setup.
-    Therefore the setX-signals are also checked when totalActive is set.
-    This is done by using setX OR activeX.
-    \item \textbf{workDone} - This is the signal used to determine whether a channel is done executing or not.
-    workDone is calculated by subtracting the values of the occupied-register with the values of the totalActive signal.
-    If the value is not "00", then a channel has finished, and the controller enters an interrupt state.
-    The occupied-register is updated as well.
-\end{itemize}
-
-\subsection{DMA Request FIFO adapter}
-
-The DMA Controller is designed to prosess input data that arrives together with the request signal, but the FIFO design that is used to store requests is not fully compatible with this setting.
-The reason they are not compatible can be explained by using an example where only one request has been stored into the FIFO buffer.
-When content is stored, the empty-signal from the FIFO buffer is set from '1' to '0'.
-This is the only signal that is depenendant on whether there is content or not, and should thus be used as request signal.
-However, when request is stored in the FIFO buffer, the new request is not automatically set as output.
-For this to be done, the request must be popped.
-When popped, the request data is set to the output, and the DMA controller receives it.
-But since there are no other requests stored and waiting to be processed, the FIFO buffer will count as empty, and the empty signal is set to '1' (negating any request signal into the controller).
-In summary, the problem is this: Either the controller will receive old data from a previous request with when new request, or there will be no request signal with the new data.
-This is the case when there are only 1 request.
-For a series of requests, the first request signal will be coupled with old data, while the final request will not be processed.
-A further problem is to avoid having the controller popping wrong at in the FIFO buffer.
-When a pop occurs, the FIFO buffer changes output by one \todo{sounds stupid, improve} storing cell, and it is possible to do a pop, even if the empty signal is '1'.
-The empty signal is based on whether the FIFO's top and bottom have the same index, with pop as last command, and popping moves the bottom index.
-Popping wrong will therefore create a wrong empty signal, and when processing the final request, the DMA Controller must not pop wrongly.
-
-\par
-The challenge is to make sure that request signals arrives at the same time with the corresponding data, and to make sure that incorrect pops to not occur.
-Here is where the adapter comes in.
-The adapter is designed to interface between the request FIFO Buffer, and the DMA Controller. 
-It delays the request signals from the FIFO buffer by one clock cycles, and sends out pop-signals at correct time.
-Figure \ref{fig:adapter} shows how the adapter is built up, and also how the adapter, the FIFO Buffer and the DMA controller are all connected to each other.
-
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{Figures/DMA/Adapter}
-    \caption{Adapter between FIFO Buffer and DMA Controller}
-    \label{fig:adapter}
-\end{figure}
-
-The adapter has one register for storing request signals, but otherwise consists of combinatorics.
-When a request is stored in the FIFO buffer, and the empty signal is sent in and negated, if the current value of the request register is 0, then the request is the first to arrive, either alone or in a series of requests.
-The adapter pops the FIFO buffer, and the request data is stored in the register (NOT empty AND NOT request).
-The register sends out the request the next cycle, which arrives in the DMA Controller together with the newly popped data.
-As long as there are more in the FIFO buffer, the negated empty signals combined with the reqUpdate-signal from the DMA controller is used to pop for new requests (NOT empty AND (REQUEST AND reqUpdate).
-ReqUpdate is set immediatly inside the DMA Controller whenever it receives a request and has a free channel.
-When a request is processed, the next request details is popped at the same, so that they may be ready for input reading.
-Using a register, any request signals are delayed with at least one cycle, so that output details from the FIFO buffer is popped and reaches the DMA Controller together with the corresponding request signal.
-There are, however, some more issues to be aware of:
-When the final data has been popped, the negated empty-signal becomes '0', but the expected case will be that while final data is ready to be read, there are no free channels to process the final request for a while.
-The request register must store the final request, without being overwritten by the empty-signal.
-This is done by using it's own value to update itself, until the next reqUpdate-signal is sent out, signaling that the DMA Controller has processed the final job.
-As long as there is no more requests, and the negated empty-signal is '0', the request register will be set to '0' as well when the reqUpdate signal is sent out.
-Notice also that as long as the negated empty-signal is '0', no pops will be made to the FIFO buffer either. 
-
-
-\subsection{Channels}
-A channel is split into two parts: A part that issues load commands, and a storing part that issues a storing command. 
-They are called load channel and store channel, respectively.
+\subsubsection{Channels}
+A channel is split into two parts: a part that is responsible for sending out load
+commands, and a storing part that issues a store commands. These ``subchannels''
+are called the load channel and store channel, respectively.
 \todo{Perhaps add an overview picture of channels here}
 
-\subsubsection{Manual subtractor}
-One of the main components used inside both load channels and store channel is the manual subtractor.
-It works by taking three inputs, two for subtraction and one as control signal.
-If the control signal is active, the first input will have its value subtracted by the second input, and the output is the result.
-If the control signal is not active, there will be no subtraction, and the first input value is the output value. 
+\subsubsection{Bus interaction system}
+In order for the DMA module to be as general as possible, it contains only a general
+interface for communicating with a bus system. An adapter is then used to connect
+the module to the bus system. This makes it possible to use the DMA module without
+changes in either SHMAC or a shared-bus system.
 
-\subsubsection{Load channel}
-The load channel is responsible for generating loading requests that are sent out from the DMA.
-It can be seen in figure \ref{fig:loadChannel}.
+\section{Alternative Simplified Designs} 
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{Figures/DMA/LoadChannel}
-    \caption{Load Channel}
-    \label{fig:loadChannel}
-\end{figure}
+In order for the design to be more appropriate for environments where there are
+constraints on, for example, logic resources or size of the module, certain simplifications
+are possible.
 
-The load channel have the following inputs:
+\todo{Consider making diagrams to show the alternatives}
 
-\begin{itemize}
-    \item \textbf{clk} - Input clock signal
-    \item \textbf{reset} - Reset signal that clears all 
-    \item \textbf{Set} - Signal from DMA Controller used to set all registers to the input values
-    \item \textbf{LMode} - Value for LMode register
-    \item \textbf{FLA} - 32-bit value for the FLA register
-    \item \textbf{Count} - 32-bit value for the Counter register
-    \item \textbf{Load Ack} - Signal received from the arbiter, telling that the current load request is acknowledged.
-\end{itemize}
+\subsection{Reducing the Controller Logic}
+It is possible to remove some of the main components from the DMA module and still
+have a functional DMA Module. The request FIFO and the DMA controller could be removed,
+and a channel could be directly connected to the bus interface adapter with little
+extra work.
 
-The load channel have the following registers:
-
-\begin{itemize}
-    \item \textbf{LMode} - Register for loading mode, connected to the subtractor.
-    \item \textbf{FLA} - Contains Final Load address
-    \item \textbf{Counter} - Used to count down the number of load requests to be generated. Also used to calculate offset from FLA, if LMode = '1'.
-\end{itemize}
-
-The load channel have the following outputs:
-
-\begin{itemize}
-    \item \textbf{Load Adr Output} - 34 bit signal with the address for the current load command. Is concatinated with two bits with value "00", used as MSB.
-    \item \textbf{Load Req} - Request signal from the load channel to the arbiter, for requesting output access to issue load command to the system.   
-    \item \textbf{Load Active} - Signal sent out, used to indicate that the load channel is active.
-\end{itemize}
-
-With exception from Load Ack from the arbiter, all input signals are received from the DMA Main Controller.
-When set is active, all registers are overwritten by the matching input signals.
-LMode determines if the loading requests are for a fixed address, or a block of addresses, by activating or deactivating a manual subtractor that the FLA and the Counter are connected to.
-If LMode is active, the current load address is calculated by subtracting the FLA with the current counter value (minus 1).
-Counter is used for both offset calculation, and counting down the number of remaining requests.
-A unique number is needed to identify whether the current job is done or not, and the value 0 has been chosen for that.
-As long as counter has a value above 0, the job is not done, and both load request and load active signals are active.
-The Load Channel does not need any additional data or input signals beside the registers, therefore the channel is designed to issue loads as long as counter is not 0.
-At the final count, the final load address should be issued, but if the counter value is 0, there will be no requests.
-This is avoided by incrementing the Count input value by one when issuing a new job (set = '1'), and decrementing the counter's current value by one before subtracting with FLA.
-Thus, when issuing the final load, the counter's value is "...001" while the counter's output value to the manual subtractor is 0.
-The load channel can issue the final load, and then the counter reaches 0 when done.
-The counter is also connected to another manual subtractor, which decrements the value with 1 if activated.
-Except from when the set-signal is active, the counter is always overwritten by the result from this subtractor.
-This manual subtractor is activated by the load ack-signal from the arbiter.
-Whenever the lod ack signal is active, the current load address output passes through the arbiter, and the counter is decremented by one.
-
-\subsubsection{Why final loading address, and counting down the offset?}
-When designing the load channel, the needs were at least a static address for loading, an offset from that address, and a value for counting down the remaning loads to be issued.
-The needs are similar for the store channel as well.
-The current design incorperates both offset and counting into one single register.
-The current address can be calculated by having a starting address that is added together with a current offset.
-Alternatively, one may use a final address and subtract it with the offset.
-\todo{Does this reason stand on it's own?} For a counter, it is ideal that it counts down towards zero, as the value zero can be recongnized distinctively from all other values.
-If a counter has an increasing value, there must be an extra register that contains the final count value if the load channel is to know when the job is finished.
-In order to utulize as few registers as possible for the task, the counter and offset value has been joined as one register.
-And since towards zero does not require an extra register, using the final load address and subtracting it with the offset-value from the counter is thus the solution.
-\todo{Find a suitable place for this description}
-
-
-\subsubsection{Store channel}
-The store channel is responsible for generating storeing requests, together with the correct data that has been loaded from a distinct memory address into the DMA module.
-It can be seen in figure \ref{fig:storeChannel}.
-
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{Figures/DMA/StoreChannel}
-    \caption{Store Channel}
-    \label{fig:storeChannel}
-\end{figure}
-
-\todo{Consider if listing up inputs and outputs that are also found in the Load Channel is necessary}
-The design of the store channel have similar traits to the load channel, and inputs, registers and outputs to the store channel, which can be seen in figure \ref{fig:storeChannel}, are similar to the ones from the load channel.
-There are some distinct differences to know of:
-\begin{itemize}
-    \item \textbf{FSA and FLA} - There are both inputs and registers for the Final loading address and the final storing address.
-    \item \textbf{Unique inputs and outputs} - Not similarly found in the load channel.
-    These are the input data rdy, and the output Load Adr ID.
-    \item \textbf{Store req} - Request signal from the store channel to the arbiter is not based on the counter, but on the input data ready.
-\end{itemize}
-
-Any loads issued by the load channel cooperating with the store channel is expected to reach a data buffer shared by all channels.
-All received data has an ID, informing which address in the memory the data was loaded from.
-Load Address ID, based on the FLA decremented with the counter, is compared with the ID of the next data in the buffer.
-If there is a match, the next data belongs to this channel, and a data rdy-signal is sent in.
-In this design of the store channel, the data rdy is used as request signal.
-\todo{Is this said well enough?}
-The reason behind this design is due to treating the Store Channel as a black box from outside, so that the if the store channel is replaced or changed in the future, the outside world does not need to know anything of it.
-Since there is a corresponding storing address for every loading address, the counter is used to calculate offsets from both FLA and FSA.
-Notice that there is no data sent into the store channel.
-The data is provided by a shared data buffer, and sent straight through the arbiter.
-The store channel sends out the storing address, together with two bits for storing commands.
-These two bits are concatinated with the address, and are the two MSBs, with values "01".
-
-\subsection{Arbiter}
-The arbiter is used to arbitrate between all channels and the DMA Main controller.
-For each clock cycle, it selects between a number of requests, and allows selected command and data to pass through.
-It can be seen in figure \ref{fig:arbiter}
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1.0\textwidth]{Figures/DMA/Arbiter}
-    \caption{Store Channel}
-    \label{fig:arbiter}
-\end{figure}
-
-The arbiter receives store request and load request signals from each channel, as well as an interrupt request from the DMA Main Controller.
-Each channel receives one store acknowledge signal and one load acknowledge signal from the arbiter.
-The DMA Main Controller also receives interrupt acknowledge signal from the arbiter.
-For each channel, there are two 34-bit command inputs, one for storing requests and one for loading requests.
-There is also a 34-bit interrupt input from the DMA Main Controller.
-All these command requests go through a 34-bit multiplexer, set by the Arbiter Controller, based on which request is acknowledged.
-For instance, if a storing request from channel 1 is selected, the store details from channel 1 is the one that passes through the multiplexer and reaches CMD out.
-The data input comes from the shared data buffer, and is sent through the Data Multiplexer whenever there is a storing request that is acknowledged.
-There is also a blocking signal connected to the arbiter.
-If the blocking signal is active, then no requests will be acknowledges, and any work inside the DMA Module, whether it's a channel or the DMA Main Controller, will effectively be halted.
-The system bus is expected to be the bottle neck in this design, and any outputs from the DMA Modul must not be sent out faster than the system can handle.
-Should there be any need, the system needs to be able to halt the DMA Modul in issuing any more commands until the previous command(s) can be handled. 
-
-The priority from the Arbiter Controller is:
-\begin{itemize}
-    \item Block, then intterupt, then stores, then loads
-    \item If there are two stores or two loads competing, then the least recently used channel gets priority.
-    This way the commands sent out from the DMA Module will alternate between two active channels. 
-    This is separate for load requests and store requests.
-\end{itemize}
-
-\subsection{Comparator}
-The comparator is used to compare the current output data's loading ID with the loading ID the requesting store channels are waiting for.
-The channel that has a match receieves a data rdy signal from the comparator. 
-
-\subsection{FIFO Data buffer}
-The implemented data buffer is a FIFO buffer.
-It is 64 bits wide, 32 bits containing the address from where the data is loaded, known as LoadID, and 32 bits containing data itself.
-\todo{Write a bit more, about purpose and reasonable depth} 
-
-\subsection{Interaction in the two-channel setup}
-The channels are set up in a sub-module of the DMA Module, called the TwoChannelSetUpBuffered.
-This setup can be seen in figure \ref{fig:twoChannelSetup}.
-The figure shows how two channels 0 and 1 are combined in this submodule together with FIFO data buffer, a comparator, and an arbiter.
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=1.25\textwidth]{Figures/DMA/TwoChannelSetUpBuffered}
-    \caption{The two-channel setup, buffered version}
-    \label{fig:twoChannelSetup}
-\end{figure}
-
-The choice of designing a submodule with the channels, was mainly to have a working environment where testing the interaction between the channels, arbiter and input buffer, were possible before having finished the DMA Main Controller.
-
-All inputs to the channels from the DMA Controller go through synchronous buffers.
-Originally, the setup were originally designed without buffers, but behavioral simulation showed that whenever a set-signal was received exactly at a clock tick together with new inputs, the previous counter value would be written into the counter registers in the channels.
-The rest of the inputs to the channels were correctly written.
-The counters are the only registers which inputs must pass additional combinatorics, so apparently these values did not reach the counter registers in time with the set-signal.
-Adding buffers for all input signals solved this problem, by giving all inputs to the channels an entire cycle to synchronize.
-The cost is an additional cycle in activating the channels.
-
-The DMA Main controller, which sends in these inputs, is also connected directly to the arbiter.
-Whenever the DMA Main Controller needs to send interrupt signals, this goes through the arbiter.
-
-Notice that each set\_buffered registers are also connected to the respecite active-signal that are sent back to the DMA Main controller.
-Even if buffering the inputs delays the channel activation by one cycle, the DMA Main controller should still receive the active-signal as early as possible.
-
-\todo{Remember, you have a design flaw to fix. Update figure and text when it is done}
-Popping data from the data buffer at the right time is also a challenge.
-Whenever a channel stores the lates data from the FIFO buffer, new data should be popped, but only if there is more.
-If the buffer is empty, no more pops should be issued.
-Whenever new data arrives to an empty buffer, it must be popped first before any of the channels can read the ID.
-This is solved by implementing some combinatorics, and a register called popFirst.
-When new data arrives, there must be a cycle between the push and the pop.
-popFirst is set by combining the empty-signal with the push-signal, which are both active when the first data arrives, and popFirst will be used in popping the first data during the next cycle.
-Otherwise, if there is content in the buffer that is to be popped, it will be done so as long as the empty signal is low, and as long as any of the store ack-signals from the arbiter is active (meaning that data with storing address is sent through and out of the DMA Module).
-
-Whenever something is sent through the system, either a store request, load request, or interrupt, an additional signal StoreOutput, is sent.
-This is done by combining all ack\-signals into an OR gate, named StoreOutput.
-This is to be used as a separate signal to the system that handles outputs from the DMA Module, to signal that a new output is sent out.
-Suppose there is a loading request sent out to address 0.
-\todo{Probably first mention of command value 00, should find a place where the values 00, 01 and 11 are described}
-The command is then "00", and the address consists of 32 0's.
-The receiving output system would not know the difference between this load, and an inactive module (default are 0's).
-Using a separate signal solves this issue.
-
-\subsection{Bus interaction system}
-Write about master interface and slave interface
-
-\section{Alternatives to the design} 
-
-\todo{Consider making diagrams to show the alternative}
-
-\subsection{Less components}
-It is possible to remove some of the main components from the DMA Module and still have a functional DMA Module.
-The request buffer and the DMA State Machine could be removed, and connect the channels directly to the slave interface.
-If the registers in the slave interface is set for activation, the signals could then be fed directly to the channels.
-
-This would reduce the number of cycles that is needed to process a request.
-The system would also be smaller, having less combinatorics and registers.
+This would slightly reduce the number of cycles that is needed to process a request.
+The system would also be smaller, including less combinatorics and registers.
 
 On the other hand, this makes the DMA Module much more dependent on the external system, since requests are processed and set externally, not by the DMA Module itself.
 Futhermore, removing the controller also constricts the possibility for the DMA Module itself to be able to process different types of requests.
@@ -400,69 +124,17 @@ But if the DMA Module is implemented in the SHMAC system, and one wants an as ef
 An example would be forwarding to the DMA Module that is \todo{Mentioned in chapter 3.5.1., see figure 3.3} closest to both source and destination.
 
 Part of the purpose with the design is to make the DMA Module generic, so that it can implemented in different systems.
-A controller, and a request buffer in case of multiple requests is therefore essential.
-All it needs is for input to arrive correctly.
+In order to make the design as generic as possible, a controller and an incoming request FIFO
+in case of multiple requests is therefore essential.
 
-\subsection{Channels with private data buffer}
-Instead of using a channel with shared data buffer, where the data output owned by one of the channels is sent straight through the arbiter, it could be sent to a private buffer inside the correct channel.
+\subsection{Using Channels with a Private Data Buffer}
+Instead of using a channel with shared data buffer, where the data output owned by
+one of the channels is sent straight through the arbiter, it could be sent to a
+private buffer inside the correct channel.
+\todo{After I reduced this chapter, an explanation of the shared/private buffers will need to be added somewhere}
 
 \todo{Expand when you wake up from bed. Good night}
 Pros: Secure data
 
 Cons: More unnecessary combinatorics + no better throughput
-
-\section{Verification and testing of DMA Module}
-
-\subsection{Functional testing}
-The DMA Module is tested by first testing individual components, then their interaction with each other.
-
-In the individual testing, the component receives different combinations of the inputs as the time passes.
-The test shows whether the component behaves as expected, based on the input.
-This is done by reading the outputs based on inputs and/or values of internal registers.
-Components that are tested individually are:
-\begin{itemize}
-    \item \textbf{Adapter} 
-    \item \textbf{Arbiter Controller}
-    \item \textbf{DMA Main Controller}
-    \item \todo{Eeehh...} FIFO buffers are tested during design of HASH-module. 
-    \item \textbf{Load Channel}
-    \item \textbf{Store Channel}
-\end{itemize}
-
-In the interaction testing, also known as topview-testing, the components are tested for their interaction with each other.
-Since the components have been tested individually, they are assumed at this point to be functional. 
-Internal values are thus ignored, also since the focus of the tests are to ensure that the interaction between the components are working as expected.
-The interaction tests are:
-\begin{itemize}
-    \item \textbf{Arbiter} - Tests that internal multiplexers are set correctly by the controller, based on the selected requests.
-    \item \textbf{Two Channel setup, signle request} - First of two tests that checks if the two-channel setup works as expected, by activating a single channel.
-    Data with ID is fed manually to the data buffer.
-    The tests ensures that a load channel sends out number of requests according to count value, and that whenever data arrives, stores are issued and get priority above loads.
-    Also tests if interrupts and blocks get highest priority, and that active signals are activated and deactivated correctly.
-    \todo{This is actually just saying that I didn't add separate counters here as I did in the topview test for the entire module}
-    Correctness is ensured by reading the output values (mainly detailsoutput and dataOutput) from the two-channel setup.
-    \item \textbf{Two Channel setup, two requests} - Second of two tests, this one activates both channels.
-    In addition to the first test, this one also ensures that loads from both channels alternates when both are active, and that correct channel identifies and stores the correct data that has been loaded.
-    When one channel is done, the other channel will have full access to the arbiter, and loads will no longer alternate.
-    Correctness is ensured by reading the output values. 
-    \item \textbf{Two Channel setup, two requests} - Second of two tests, this one activates both channels.
-    In addition to the first test, this one also ensures that loads from both channels alternates when both are active, and that correct channel identifies and stores the correct data that has been loaded.
-    When one channel is done, the other channel will have full access to the arbiter, and loads will no longer alternate.
-    Correctness is ensured by reading the output values.
-    \item \textbf{Topview} - This is where the entire DMA Module is tested, as requests are sent in.
-    Each cycle with load, store, interrupt and blocking are counted (either identified by the command value, or by the blocking signal when it is high, in the test).
-    For each load issued, a register receives the load address, and sends it back to the DMA Module with a push signal and data (since the data value is not important for this test, each value is incremented by 8).
-    Thus there is a cycle delay from a load is issued to the data arrives to the DMA Module.
-    In the real world, there will be far more cycles from a load is issued, until it's data arrives in the DMA Module.
-    And issuing multiple loads or not also depends on the system it is integrated with.
-    There will be great difference between this project, where the DMA Module is connected to a single shared bus network, and to integrate it on SHMAC, where the main network is switched-media network.
-    In this test, however, all data arrives quickly, as if using a bus and memory that is extremely fast.
-    One reason is to cut down the necessary waiting time in the test itself, and another is that the module is tested for near-maximum peak.
-    There are three tests in total: One with single request (only one channel active), one with two requests (both channels active) and one with four requests (test for waiting requests).
-    Correctness is ensured by comparing the test counter values with expected number of loads, stores, interrupts issued, and number of blocks.
-    
-    \todo{HHHHHHMMMMMMM!!!!!}A word of warning: It turns out in the tests that for each round of blocks, the block counter counts one block less than the number of cycles a block is active. It still turns out, when analysing the signals, that the module is inactive in correct number of cycles as long as the block signal is active, the block counter merely does not count for the first cycle during a block. Since this is considered a flaw with the test itself, and not with the DMA Module, the error is considered negligable. 
-\end{itemize}
-
-
 
