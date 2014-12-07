@@ -1,4 +1,63 @@
 \chapter{Introduction}
 
-To be written.
+This report details an exploration of the possible benefits of accelerating
+SHA-256 hashing using an accelerator module and a DMA, for possible future
+inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous
+\textbf{Ma}ny-core \textbf{C}omputer} research computer.
+
+\section{Assignment Text}
+
+This project aims to develop an accelerator for a multi-core heterogeneous
+computing platform instantiating a hardware-based Bitcoin miner. Bitcoin mining
+is, at its core, a SHA-256 hashing problem, so part of the assignment will be to
+make the interface generic enough such that other cryptographic algorithms can
+be readily developed. Furthermore, various constraints on the heterogeneous
+architectures may necessitate the implementation of new features, for example,
+direct memory access (DMA). If time permits the student is to implement other
+necessary architectural improvements or dependencies.
+
+Specifically, the following points are envisioned:
+
+\begin{enumerate}
+\item A literature review discussing possible benefits of a bitcoin miner in the
+      context of a multi-core heterogeneous computing platform.
+\item Implement a SHA-256 accelerator in hardware/on an FPGA (an other hashing algorithms if time permits).
+\item Wrap the accelerator into a package (for example, a SHMAC tile if time permits and current ISA-issues permit).
+\item Evaluation of the energy efficiency of the proposed tile compared to a general-purpose CPU.
+\item Implementing a generic DMA interface for SHMAC and evaluation of the impact on the accelerator.
+\item Investigation of heterogeneous mapping possibilities (for example, getting the CPU and accelerator to cooperate on different parts).
+\end{enumerate}
+
+\section{Interpretation}
+
+\section{Bitcoin Mining as a Model Problem}
+
+Bitcoin is a virtual currency that is produced through an algorithm that
+requires repeatedly hashing data structures with the SHA-256 algorithm
+in order to produce a target hash value. There are more details about
+bitcoins and how they are created in section \ref{sec:bitcoins}.
+
+Bitcoin mining is a problem that there exists many different accelerators
+for, implemented both in software and hardware, in FPGAs and ASICs\cite{bespoke-silicon}.
+This gives a good opportunity for comparing the performance of our
+accelerator with other implementations.
+
+There is also an established performance metric for bitcoin mining hardware:
+hashes per second, often abbreviated H/s. This metric makes it easy
+to measure and compare the performance of our accelerator.
+
+\section{Accelerators and Heterogeneous Systems}
+
+A heterogeneous processor architecture is an architecture that contains multiple
+cores of different sizes and capabilities. For an overview of why heterogeneous
+architectures may become increasingly important in the future, see section
+\ref{sec:heterogeneous}.
+
+A hashing accelerator can be used to provide accelerated hashing capabilities
+to a processing element in such an architecture, or it can be implemented as
+a processing element by itself.
+
+Other parts of the processor can then offload hashing operations to the
+accelerator tiles or the accelerated processor elements and continue
+working on other tasks or simply shut down, saving energy.
 
