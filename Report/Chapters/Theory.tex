@@ -1,27 +1,85 @@
-\chapter{Theory}
+\chapter{Background}
+
+\section{Heterogeneous Architectures}
+\label{sec:heterogeneous}
+
+About why heterogeneous architectures and SHMAC are good.
+
+% I'll write this one -KKS.
+
+\subsection{SHMAC}
+\subsection{Current Interconnect System in SHMAC}
+\todo{Add reference to the SHMAC introduction paper, including pagenumber?}
+%TODO Add reference to the SHMAC introduction paper, including pagenumber?
+SHMAC implements a 2D mesh-based Network-on-a-Chip (NoC) interconnection network. 
+Currently, the system uses dimension-ordered (XY) routing, and store-and-forward
+switching with on/off flow control. The switching routine can be replaced in the
+future, should the current routine be found to cause performance bottlenecks \cite{shmac-plan}.
+
+\todo{Make sure the "goal"-part is valid}
+%TODO Make sure the "goal"-part is valid
+SHMAC does not implement DMA today, and data transfers are performed by the
+on-tile processors. A goal of this project is to explore the option of implementing
+a DMA module and testing it in a shared-bus system, before creating a prototype that
+can be implemented in SHMAC.
+
+\section{The Bitcoin Currency}
+\label{sec:bitcoins}
+Bitcoin is a decentralized currency using a peer-to-peer network to replace
+the financial institutions that are used to process transactions in conventional
+currency systems.
+
+The network keeps a ledger of all transactions in a linked list of blocks, called the
+block-chain. Each block contains a list of all transactions executed since the last
+block was published. Blocks are generated periodically through a process
+called ``mining'', described in \ref{sec:bitcoin-mining}. This is due to the fact that
+a valid block must satisfy the requirement that the hash of the block must be below a certain value
+which is determined by a variable difficulty value used to limit the number
+of blocks being generated each hour \cite{bitcoin}.
+
+As an incentive to keep generating new blocks, a reward is offered on each new block
+generated. This reward is currently at 25~bitcoins (467~USD as of the 9th of November, 2014)).
+This reward is why bitcoin mining is a popular activity, and a reason for why
+there are many initiatives to improve the performance of bitcoin mining systems.
+
+\subsection{Mining Bitcoins}
+\label{sec:bitcoin-mining}
+The process of creating a new block in the bitcoin network is called ``mining''. The basic
+principle of bitcoin mining is to create a block that generates a SHA-256 hash with
+a value lower than a preset target value.
+
+Since bitcoin mining is an NP-hard problem \cite{bitcoin-np}, the search for a valid block
+hash has to be done by brute-force search. The block header contains several fields
+that can be varied to produce different hashes, and it is also possible to include
+or exclude transactions from the block in order to produce a hash with the desired
+value.
+
+Mining performance is measured in hashes per second, denoted H/s. Hashing is the
+most computing intensive part of the algorithm for mining bitcoins, which is
+why accelerating hashing is a priority.
 
 \section{Cryptographic Hashing}
 
 A cryptographic hash function, also commonly referred to as a digital signature or
 a message digest, is a function that takes input data of varying size and
-produces an output value of a constant size\cite{hashing-overview}.
+produces an output value of a constant size \cite{hashing-overview}.
 % That article is a pain to read, it pains me to cite it
 
 Cryptographic hash functions are designed to be one-way, meaning it should
 not be computationally feasible to find the input data given the hash value,
 and collision resistant, meaning that it should not be practical to find two
-different sets of input data that produces the same output hash\cite{sha-spec}.
+different sets of input data that produces the same output hash \cite{sha-spec}.
 
-\section{The SHA-2 Algorithms}
+\subsection{The SHA-256 Hashing Algorithm}
 
-The set of algorithms referred to as the SHA-2 algorithms are currently described in \cite{fips180-4}
-and consists of algorithms for producing hashes with lengths of 224, 256, 384 and 512 bits.
+The SHA-256 algorithm is a member of the set of algorithms referred to as the SHA-2 standard.
+These are described in \cite{fips180-4} and consists of algorithms for producing hashes with lengths of 224, 256, 384 and 512 bits.
 The algorithms use simple operations, limited to shifts, rotates, xor, and unsigned additions,
 in addition to a lookup-table of constants, which allow for high-speed implementations in both
 software and hardware. The different algorithms differ in how and with what parameters the various
 operations are invoked.
 
-\subsection{The SHA-256 Algorithm\cite{sha-spec}}
+\subsection{SHA-256 in Detail}
 
 SHA-256 is the algorithm used in cryptocoin mining. It operates on blocks of 512 bits
 and keeps a 256-bit intermediate hash value as state.
@@ -90,91 +148,32 @@ variables $a$--$h$ to the corresponding values of the intermediate hash values f
 the previous message block.
 
 When the final input block has been processed, the final hash is composed by
-concatenating the intermediate hash values.
-
-\section{The Bitcoin Currency}
-Bitcoin is a decentralized currency using a peer-to-peer network to replace
-the financial institutions that are used to process transactions in conventional
-currency systems.
-
-The network keeps a ledger of all transactions in a linked list of blocks, called the
-block-chain. Each block contains a list of all transactions executed since the last
-block was published. Blocks are generated periodically through a process
-commonly known as ``mining''. This is due to the fact that a valid block must satisfy
-the requirement that the hash of the block header must begin with a certain number of
-zero bits, which is determined by a variable difficulty value used to limit the number
-of blocks being generated each hour\cite{bitcoin}.
-
-As an incentive to keep generating new blocks, a reward is offered on each new block
-generated. This reward is currently at 25~bitcoins (467~\$ (9.11.2014))\todo{Explain why, also fix date format}.
-\todo{There are many more details to write about.}
-
-\subsection{Mining Bitcoins}
-The process of creating a new block in the bitcoin network is called ``mining''. The basic
-principle of bitcoin mining is to create a block header that generates a SHA-256 hash with
-a value lower than a preset target value.
-
-The search for a valid block hash has to be done by brute-force search. The block header
-contains several fields that can be varied to produce different hashes.
-
-Mining performance is measured in hashes per second, denoted H/s.
-
-%Some keywords for later:
-%-new blocks
-%-algorithm
-%-network
-%-getwork + getworktemplate (if neccessary)
-
-%\subsection{Pooled Mining}
-%Due to the increasing difficulty of creating new bitcoin blocks, it has become impractical
-%to mine bitcoins with either commodity hardware or even specialized ASIC miners. According
-%to \texttt{blockchain.info}, a website tracking the bitcoin blockchain and network, the
-%total number of hashes per second in the bitcoin network is about 214 EH/s\footnote{exahashes per second, $10^18$ H/s}.
-%In comparison, a single modern, high-end GPU has a hashing performance of about 800 MH/s.
-%
-%In order for anyone with slower hardware to still be able to earn bitcoins through mining,
-%bitcoin pools were created. A mining pool allows large numbers of people to cooperate on
-%finding new bitcoin blocks. When a new valid block is found, the reward is split between
-%the participants based on how much work they contributed towards finding the block.
-%
-%- stratum protocol
-
-\subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
-
-The hashing modules can finish one round of hashing in 65 clock cycles. If
-every hash can be obtained from only one block of data, it is possible to
-obtain a hash every 65 clock cycles under ideal conditions. This translates
-into a maximum theoretical performance of 768230~H/s at a clock frequency of
-50~MHz.
-
-However, the modules do not exist in a vacuum, and data needs to be transferred
-between the modules and a controller, such as a microprocessor. The hashing tiles
-are connected to the rest of the system using an AXI4 lite interface. Transfers
-on the AXI bus takes at least three cycles for writes and two cycles for reads,
-if it is assumed that no burst transfers are used\footnote{Indeed, the AXI4 lite
-interface only allows burst lengths of one word, in essence no burst transfer is
-supported.}
-
-In order for the hashing module to word, it needs 16 32-bit words of input data,
-and control signals must be set up. This causes at least 17 words of data to
-need to be written to the module, taking at least 51 clock cycles. Then, after
-hashing of a block is complete, if there are no more blocks, the result must
-be read back. The result consists of 8 words of data, which takes at least 16
-clock cycles to transfer.
-
-In total, a minimum of 67 clock cycles of overhead is needed per hash when assuming
-a one-block input size and an ideal AXI4 bus. Not considering the additional overhead
-from processing in the microprocessor, such as when handlig the interrupt when the
-hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
-complete, bringing the maximum theoretical performance down to at most 378787~H/s.
+concatenating the intermediate hash values \cite{sha-spec}.
 
 \section{Direct Memory Access (DMA)}
 
+A DMA is used to offload the transfer of blocks of data between memory locations from
+the processor(s) in a system. This allows the processors to work on other tasks or enter
+a sleep state while data is being transferred.
+
+In order for a hashing accelerator to be energy efficient and have better performance,
+it is important that a processor does not have to do memory transfers by itself. Therefore,
+a DMA module is being designed that can be used for transferring data to or from the hashing
+module, and later be extended to work as a general DMA in the SHMAC architecture.
+
 \subsection{A Brief History of DMA}
 
+Originally, processors polled different peripheral devices for data. This caused the processors
+to enter loops where they waited for the data to be ready, which is inefficient. An alternative
+to polling peripherals is using interrupts, where the processor receives an interrupt when
+a device is ready for data to be read from it or written to it. This saves the processor from
+having to keep polling the device for data. In both cases, however, the processor takes care
+of the transfer of data to or from the device.
+\todo{Insert references?}
+
 %TODO Qualify the introduction history, of polling and interrupts. Get coverage by reference.
-\todo{Qualify the introduction history, of polling and interrupts. Get coverage by reference.}
-Originally, the processors polled the different devices for data transfer requests. Most of the time, the polls returned negative answers, and this was concidered inefficient. An alternative to polling is using interrupts, where the processor receives an interrupt from a device requesting data transfer to or from memory. This is more efficient than polling, since the processor does not have to keep polling the devices for requests. In both cases, however, the processor executes the data transfer.
+%\todo{Qualify the introduction history, of polling and interrupts. Get coverage by reference.}
+%Originally, the processors polled the different devices for data transfer requests. Most of the time, the polls returned negative answers, and this was concidered inefficient. An alternative to polling is using interrupts, where the processor receives an interrupt from a device requesting data transfer to or from memory. This is more efficient than polling, since the processor does not have to keep polling the devices for requests. In both cases, however, the processor executes the data transfer.
 
 % Devices do not directly ask the CPU to transfer data for them, they usually cause
 % interrupts when something interesting has happened; it is then up to the CPU to
@@ -182,83 +181,85 @@ Originally, the processors polled the different devices for data transfer reques
 % to transfer data to or from the peripheral. I think this should be clarified
 % in the section above. -K.
 
-Direct Memory Access (DMA) was developed in 19XX\todo{Year?} to save the processor from doing data transfer between external devices. Typical use is that as soon as a processor receives a request from a peripheral device, it activates the DMA module. The DMA module receives the load address, the store address and a count of data to be transfered. While the DMA executes the data transfer, the CPU can work on other tasks, until the DMA module signalizes that it is done.
-
-\subsection{Current Interconnect System in SHMAC}
-\todo{Add reference to the SHMAC introduction paper, including pagenumber?}
-%TODO Add reference to the SHMAC introduction paper, including pagenumber?
-SHMAC implements a 2D mesh-based Network-on-a-Chip (NoC) interconnection network. 
-Currently, the system uses dimension-ordered (XY) routing, and store-and-forward switching with on/off flow control.
-The switching routine can be replaced in the future, should the current routine be found to cause performance bottlenecks.
-
-\todo{Make sure the "goal"-part is valid}
-%TODO Make sure the "goal"-part is valid
-SHMAC does not implement DMA today, and data transfers are performed by the on-tile processors.
-A goal of this project is to explore the option of implementing a DMA module in the system, and create a prototype that may later be implemented in SHMAC.
+Direct Memory Access was developed in 19XX\todo{Year?} to save the processor
+from doing data transfer between peripheral devices. Typical use is that as soon as a
+processor receives a request from a peripheral device, it activates the DMA module.
+The DMA module receives a load address, a store address and a count of how much data to
+transfer. While the DMA executes the data transfer, the CPU can sleep or work on other
+tasks, until the DMA module signalizes that it is done.
 
 \subsection{DMA Module Functionality}
 \todo{Documentation, documentation, documentation!}
 %TODO Documentation, documentation, documentation!
-The minimum requirement of a DMA module is to transfer data from one location to another, while the CPUs of the system are free to do other work.
-The CPUs themselves should work on other tasks while the DMA module transfers the data.
-This is the minimum requirement, but for an efficient implementation for a given system, there are several options to consider, such as operation modes, transfer types, integration with the rest of the system, choice of registers and interrupts.
-Architectural implementation of the DMA module are affected by the chosen options, and how well they fit in the SHMAC system.
-The following sections will discuss these options.
+The minimum requirement of a DMA module is to be able to transfer data from one location to another.
+However, for an efficient implementation for a given system, there are several options to consider,
+such as operational modes, transfer types, integration with the rest of the system, and which
+registers and interrupts to provide. The architecture of the DMA module is affected by
+the options chosen, and how well they will fit in the SHMAC system.
 
 \subsection{Operational Modes}
 \todo{WARNING: Got only Wikipedia on this. Document!}
 %TODO WARNING: Got only Wikipedia on this. Document!
-\textbf{WARNING: Got only Wikipedia on this. Document!}
-Operational mode concerns how the DMA operates on the interconnect network, in correspondence with other peripherals that also may need to use the network.
-There are three modes that are used in shared media networks:
+The operational mode concerns how the DMA operates on the interconnect network, together
+with other peripherals that may also need to use the network. In regular shared-bus systems,
+there are three commonly used modes:
 
 \begin{description}
     \item[Burst mode.]
     The DMA module has full ownership of the bus as long as the transfer is under execution.
-    This is the fastest transfer mode for a DMA module, but it limits bus access for other peripherals as long as the DMA is executing the transfer.
-    In a shared interconnect network, bus access will be blocked.
+    This is the fastest transfer mode for a DMA module, but it limits bus access for other
+    peripherals as long as the DMA is executing the transfer.
+
     \item[Cycle stealing mode.]
-    The DMA requests the bus as in burst mode, but relents control of the bus after transferring one byte of data.
-    It will then re-request access to the bus for each transmission.
-    In this way, the CPU and other peripherals can get access to the bus earlier compared to burst mode. 
+    The DMA requests the bus as in burst mode, but relents control of the bus after transferring
+    each byte of data. It will then re-request access to the bus for each transmission.
+    In this way, the CPU and other peripherals can get earlier access to the bus if they need to.
+
     \item[Transparent mode.]
-    DMA transfers data only when the CPU is not performing operations that require access to the bus.
-    This is the slowest mode, but also the one that allows the best overall system performance.
+    DMA transfers data only when the CPU or other modules are not performing operations that
+    require access to the bus. This is the slowest mode, but also the one that allows the best
+    overall system performance.
 \end{description}
 
-On a shared media network, such as the one used on SHMAC, these implementations will be different,
-but the principle remains the same; how much priority should a DMA transfer have, compared to other transfers in the system?
-Having as quick as possible transfers, like in the burst mode, will make DMA transfers more efficient, but will also place the most restriction on the network for other modules and peripherals, should it occur at a time when many peripherals or tiles attempts to perform data transfers.
+In a packet-switched network, such as the one used on SHMAC, the implementations of these
+principles will be different, but the principles remain the same; how high priority should
+DMA transfers have, compared to other transfers in the system? Having transfers be as quick as possible,
+like in the burst mode, will make DMA transfers more efficient, but will also place the
+most restriction on the network for other modules and peripherals, should it occur at a
+time when many peripherals or tiles are attempting to perform data transfers.
 
-A lower priority scheme will make data transfers go faster for other modules, but at the same time, DMA transfers will be slower.
-\todo{This is outrageously based on an assumption, that priority schemes already exists. An assumption does not hold. Get this confirmed!}
-%TODO This is outrageously based on an assumption, that priority schemes already exists. An assumption does not hold. Get this confirmed!
-Deciding the priority of a DMA transfer, however, will be up to the routers in the network, and is therefore outside the scope of this project.
+A lower priority scheme will make data transfers go faster for other modules, but at
+the same time, DMA transfers will be slower. Deciding the priority of a DMA transfer,
+however, will be up to the routers in the network, and is therefore outside the scope of this project.
 
 \subsection{Transfer types}
 \todo{These functions are from the manual of the PIC24F family by Microchip Inc. Add reference!}
 %TODO These functions are from the manual of the PIC24F family by Microchip Inc. Add reference!
-Transfer types describes how the load and store destinations are addressed.
-They are both given a load and store address, but whether they change with an offset for each data transfer depends on the transfer type.
-INSERT REFERENCE HERE describes the following options:\todo{Reference?}
+Transfer types describes how the source and destination addresses are used in the transfer.
+Some commonly used options are:
+
 \begin{description}
     \item[Fixed-to-fixed transfers.]
-    Both load and store destination remain the same for each data transfer.
-    \todo{Double check}
-    This mode is suitable for transfers of single data between two fixed addresses, or if the DMA operates with single transfers.
+    Both the source and destination addresses remain the same for each data transfer.
+    This mode is suitable for transfers of single data between two fixed addresses,
+    or if the DMA operates with single-word transfers.
     \item[Fixed-to-block transfers.]
-    The load address is fixed, while the store address increments.
-    This is useful for storing data from a buffer of, for instance, a serial communication peripheral.
-    \todo{Find confirmation for this}
+    The source address is fixed, while the destination address increments.
+    This is useful for storing data \emph{from} the buffer of, for instance, a serial
+    communication peripheral, such as the 16C750 UART.
     It could also be used to do multiple copies of data from a single address to multiple addresses.
     \item[Block-to-block transfers.]
-    Both load and store addresses increment for each transfer.
+    Both source and destination addresses increment for each transfer.
     This is the scheme where entire blocks of data is transferred during a single operation.
     \todo{Perhaps mention this as a requirement?}
     \item[Block-to-fixed transfers.]
-    The load address increments, while the store address remains the same.
-    This is useful when, for instance, transferring data into the buffer of a serial communications peripheral.
+    The source address increments, while the destination address remains the same.
+    This is useful when, for instance, transferring data \emph{into} the buffer of a
+    serial communications peripheral.
 \end{description}
+
+More complicated DMAs also support additional modes, such as using more complex patterns
+when modifying the source and destination addresses or modifying the data in-flight.
 
 %\subsection{System and Data Registers}
 %A DMA requires minimum a buffer for storing transfering data, as well as registers for load addresses and store addresses.
@@ -270,9 +271,9 @@ INSERT REFERENCE HERE describes the following options:\todo{Reference?}
 %Another possible implementation is to have a buffer for outgoing data, where request ID, load address and store address are combined in order to recognize the incomming data from the load memory and send them to the correct store address.
 %In this case, one counter may operate with one load address and generate the requests at the time.
 %
-% - Commented out because I don't agree on these minimum requirements. -K.
+% - Commented out because I don't agree on this. -K.
 
-\subsection{Tile vs. Accelerator on SHMAC}
+\subsection{DMA Integration Considerations}
 \todo{Add a figure of each option}
 \todo{Documentation, documentation, documentation... uhm... how do you document your separate ideas for the options?}
 
@@ -290,8 +291,7 @@ There are different reasons for and against each option:
     However, this also means the DMA has to share the internal shared bus network with other modules.
 \end{itemize}
 
-\subsection{Integration in SHMAC}
-For a basic implementation of a DMA, all that is needed for the DMA module to work is that it can transfer data from one address to another.
+For a basic implementation of a DMA in SHMAC, all that is needed for the DMA module to work is that it can transfer data from one address to another.
 It does not need to know where in the system it is, and what route the data must take from the load address to the store address.
 Figure \ref{fig:DMASHMAC1} shows an example where the DMA is implemented on a seperate tile.
 
@@ -367,19 +367,4 @@ In summary, this is a compromise between memory size and efficiency.
 %Generic DMA or specialized DMAs?
 %
 % - Commented out for the first draft. -K.
-
-
-\subsection{DMA Optimalization Effect}
-Without a DMA module, the CPU has to move data from one area in the memory to another, or between memory and peripherals.
-Assuming that a data transfer is done in a loop, with the ending offset count used as max index, these are the instructions used in such a loop:
-\begin{itemize}
-    \item Load from source + index I into local register.
-    \item Store from register to destination + index I
-    \item Increment index I by adding constant
-    \item Branch to start of Loop, if index I is less than ending offset
-\end{itemize}
-
-\todo{Change to mathematical formula}The total number of cycles for a data transfer with offset $M$ done by the CPU is
-\todo{This is if M is in words. Compensate if bytes (25\%)}
-(Load cycles + store cycles + addition cycles + branching cycles) * M 
 
