@@ -3,9 +3,8 @@
 \section{DMA}
 These are manuals or papers that describe the DMA Engine in other works.
 \subsection{Microchip PIC24F device family}
-\todo{Source to PIC24F chapter 1: introduction, page 2}The company Microchip Inc is a provider of microcontrollers and analog semiconductors.
-Among their products is the PIC24F device family. 
-The PIC24F manual, \todo{Add reference} chapter 54, describes the DMA module of the PIC24F family.
+The company Microchip Inc is a provider of microcontrollers and analog semiconductors.
+Among their products is the PIC24F device family \cite{microchip1}, which includes a DMA Module of its own\cite{microchip54}.
 The module is located on the microcontroller data bus between the CPU and DMA-enabled peripherals, with direct access to SRAM.
 The DMA controller is composed of multiple intedendent DMA channel controllers, or simply channels.
 Each channel can be independently programmed to transfer data between different areas of the data RAM, move data between single or multiple addresses, use a wide range of hardware triggers to initiate transfers, and conduct programmed transactions once or many times. 
@@ -17,8 +16,7 @@ For the module itself, there are registers for the engine control, for upper and
 For each channel implemented, there are registers for channel control, channel interrupt control, registers for source and destination, and there is the transaction counter. 
 
 \subsection{Adapteva Epiphany}
-\todo{Add the Epiphany paper as source, point to chapters 1 (intro) and chapter 8 (DMA)}
-The Epiphany architecture by Adapteva defines a multicore, scalable, shared-memory, parallel computing fabric.
+The Epiphany architecture by Adapteva \todo{Compiler errors when cite name uses underscore. See note below on "epiphany"}\cite{epiphany} defines a multicore, scalable, shared-memory, parallel computing fabric.
 It consists of a 2D-array of compute nodes connected by a low-latency mesh network-on-chip.
 Figure \ref{fig:AdaptevaEpiphany} shows an implementation of the architecture.
 As it can be seen in the figure, every node consist of a RISC CPU, local memory, a DMA Engine and a Network interface.
@@ -49,14 +47,13 @@ Channel 0 has higher priority than channel 1.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/AdaptevaEpiphany}
-    \caption{An implementation of the Epiphany Architecture, as seen from ADD SOURCE HERE}
+    \caption{An implementation of the Epiphany Architecture, as seen from \cite{epiphany}}
     \label{fig:AdaptevaEpiphany}
 \end{figure}
 
-\todo{Add source in image text}
 
 \subsection{Cell Processor}
-Kistler, Perrone and Petrini takes a look at the Cell Multiprocessor, developed by IBM, Sony and Toshiba, in their paper \todo{Add source here} \"Cell Communication Network: Built for Speed\".
+Kistler, Perrone and Petrini\cite{cell} takes a look at the Cell Multiprocessor, developed by IBM, Sony and Toshiba, in their paper "Cell Communication Network: Built for Speed\".
 As multicores have become a major trend in computer architecture, the authors stress the need for on-chip networks that provide high performance in latency and bandwidth, if the computational power of the many anvailable processing unites are to be realized.
 In this paper, the authors describes the architecture of the multiprocessor, and their experiments where they test the performance of the communication networks.
 One of the main components involved in the communication is the DMA engine.
@@ -65,7 +62,7 @@ The Cell's architecture can bee seen in figure \ref{fig:CellTop}.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/CellTop}
-    \caption{Topview of the Cell Architecture, as seen from ADD SOURCE HERE}
+    \caption{Topview of the Cell Architecture, as seen from \cite{cell}}
     \label{fig:CellTop}
 \end{figure}
 
@@ -82,7 +79,7 @@ The DMA Module and the flow of a DMA transfer can be seen in figure \ref{fig:Cel
 \begin{figure}[h!]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/CellDMA}
-    \caption{Basic flow of a DMA transfer on the Cell, as seen from ADD SOURCE HERE}
+    \caption{Basic flow of a DMA transfer on the Cell, as seen from \cite{cell}}
     \label{fig:CellDMA}
 \end{figure}
 
