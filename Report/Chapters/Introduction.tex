@@ -3,32 +3,26 @@
 This report details an exploration of the possible benefits of accelerating
 SHA-256 hashing using an accelerator module and a DMA, for possible future
 inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous
-\textbf{Ma}ny-core \textbf{C}omputer} research computer.
+\textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
+heterogeneous architecture consisting of different processing elements with
+optional accelerators. SHMAC is further described in section \ref{sec:shmac}.
 
-\section{Assignment Text}
+\section{Original Assignment Text}
 
 This project aims to develop an accelerator for a multi-core heterogeneous
-computing platform instantiating a hardware-based Bitcoin miner. Bitcoin mining
-is, at its core, a SHA-256 hashing problem, so part of the assignment will be to
-make the interface generic enough such that other cryptographic algorithms can
-be readily developed. Furthermore, various constraints on the heterogeneous
-architectures may necessitate the implementation of new features, for example,
-direct memory access (DMA). If time permits the student is to implement other
-necessary architectural improvements or dependencies.
+computing platform, with the aim of instantiating a hardware-based Bitcoin miner.
+Bitcoin mining is, at its core, a SHA-256 hashing problem, so part of the
+assignment will be to make the hashing interface generic enough such that other
+cryptographic algorithms can be readily developed. Furthermore, various constraints
+on the heterogeneous architecture may necessitate the implementation of new
+features, for example, direct memory access (DMA).
 
-Specifically, the following points are envisioned:
-
-\begin{enumerate}
-\item A literature review discussing possible benefits of a bitcoin miner in the
-      context of a multi-core heterogeneous computing platform.
-\item Implement a SHA-256 accelerator in hardware/on an FPGA (an other hashing algorithms if time permits).
-\item Wrap the accelerator into a package (for example, a SHMAC tile if time permits and current ISA-issues permit).
-\item Evaluation of the energy efficiency of the proposed tile compared to a general-purpose CPU.
-\item Implementing a generic DMA interface for SHMAC and evaluation of the impact on the accelerator.
-\item Investigation of heterogeneous mapping possibilities (for example, getting the CPU and accelerator to cooperate on different parts).
-\end{enumerate}
-
-\section{Interpretation}
+Important parts of this project includes reviewing literature in order to discover
+possible benefits of a bitcoin miner in the context of a multi-core heterogeneous
+computing platform, implementing a SHA-256 accelerator prototype and testing it on
+an FPGA, evaluating the energy efficiency of the accelerator as compared to a
+general purpose CPU, implementing a DMA and evaluating the impact of it in the context
+of SHMAC.
 
 \section{Bitcoin Mining as a Model Problem}
 
@@ -61,10 +55,8 @@ Other parts of the processor can then offload hashing operations to the
 accelerator tiles or the accelerated processor elements and continue
 working on other tasks or simply shut down, saving energy.
 
-
-\section{DMA (write a smart title)}
-
-
-\section{About this report}
-(Write a short description about what to expect from each chapter (Så dette i flere av papirene vi leste i TDT1))
+Using a DMA\footnote{Direct Memory Access} module can allow further
+power savings, as the processor does not have to do data transfer to
+and from the hashing accelerator by itself and can spend its time
+in a low-power sleep state instead.
 
