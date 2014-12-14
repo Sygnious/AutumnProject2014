@@ -276,12 +276,25 @@ The DMA Module used in the same system must follow the same type addressing.
 A generic DMA Module made for more than one system should offer the choice between word addressing or byte addressing, as part of the input configuration.
 
 \subsection{DMA Integration Considerations regarding SHMAC}
-\todo{Add a figure of each option}
 \todo{Documentation, documentation, documentation... uhm... how do you document your separate ideas for the options?}
 
 If the DMA Module is to be integrated with SHMAC, there are some considerations that needs to be addressed.
 The DMA Module should be adapted to work as efficient as possible with SHMAC, and at the same time, it should also be possible to todo{Meh... sounds stupid. It's efficiency vs. generic that I'm trying to address} use it everywhere. 
-A DMA module may be implemented as a separate shared DMA Controller tile in SHMAC, as seen in figure \todo{Add figure} ADD FIGURE, or as an accelerator on an exisiting tile, for instance in a CPU tile, as seen in figure \todo{Add figure} ADD FIGURE.
+A DMA module may be implemented as a separate shared DMA Controller tile in SHMAC, as seen in figure \ref{fig:DMATile}, or as an accelerator on an exisiting tile, for instance in a CPU tile, as seen in figure \ref{fig:DMAAccelerator}.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/DMA/DMATile}
+    \caption{DMA module implemented as a shared DMA Controller tile}
+    \label{fig:DMATile}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/DMA/Accelerator}
+    \caption{DMA Module Implemented as accelerator on an existing tile, on bottom left. Based upon figure from \cite{shmac-plan}}
+    \label{fig:DMAAccelerator}
+\end{figure}
 
 There are different reasons for and against each option:
 \begin{itemize}
@@ -305,7 +318,6 @@ Figure \ref{fig:DMASHMAC1} shows an example where the DMA is implemented on a se
     \caption{DMA module implemented as a tile on SHMAC, with basic transfer from MEM1 to MEM2 through itself}
     \label{fig:DMASHMAC1}
 \end{figure}
-\todo{Figure needs update, remove some texts and rename PU to CPU}
  
 As can be seen in the figure, the DMA tile recieves a request from its neighbouring CPU tile, and transfers data  from tile MEM1 to tile MEM2.
 This would also work the same way if the DMA module was implemented on the CPU tile as an accelerator instead.
@@ -329,7 +341,7 @@ This leads to additional complexity in implementing the DMA.
  
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.7\textwidth]{Figures/DMA/DMASHMAC3}
+    \includegraphics[width=0.8\textwidth]{Figures/DMA/DMASHMAC3}
     \caption{DMA module implemented directly on storing memory tile}
     \label{fig:DMASHMAC3}
 \end{figure}
@@ -359,7 +371,7 @@ This makes this alternative likely the one with best performance, and also most 
 
 When implementing a DMA Module, there are issues regarding its cooperation with the system that must be handled.
 Among these are cache coherency and virtual memory.
-These will be outside the scope of this project, but are relevant if a DMA Module is to be implemented on SHMAC.
+These will be outside the scope of this project, but are relevant if a DMA module is to be implemented on SHMAC.
 
 \subsubsection{Cache coherency}
 Data that the DMA Module is tranfering may also exist on the cache of a CPU \cite[p~594-595]{computer-construction}.
@@ -375,6 +387,7 @@ But the problem with physical addresses is that the transfer cannot easily cross
 Contiguous data in the physical space is not necessarily contiguous in virtual memory.
 When using physical addressing, DMA transfers must be constrained within same memory page.
 
+\todo{Consider moving this entire paragraph to "future work"}
 A possible solution may be to make the DMA work on virtual addresses, by providing the DMA Module with with a small number of map entries that provide virtual-to-physical mapping for a transfer.
 Another solution is for the operating system to break the DMA transfer into a series of transfers, each confined within a single physical page.
 The transfers are then chained together and handled by an intelligent DMA unit that executes the series of transfers. 

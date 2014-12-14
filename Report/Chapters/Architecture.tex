@@ -1,11 +1,15 @@
 \chapter{Architecture}
 
+This chapter gives an overview of the architectural design that was chosen for the project.
+The Hasing Accelerator is first explained, followed by the DMA Module.
+The DMA Module 
+
 \section{Design of the Hashing Accelerator}
 
 Write about the hashing accelerator architecture here.
 
 \subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
-
+\todo{Wait, is this really architecture?!?}
 The hashing modules can finish one round of hashing in 65 clock cycles. If
 every hash can be obtained from only one block of data, it is possible to
 obtain a hash every 65 clock cycles under ideal conditions. This translates
@@ -40,12 +44,14 @@ complete, bringing the maximum theoretical performance down to at most 378787~H/
 To simplify the design of the DMA module, some assumptions as to the system where the
 DMA is implemented needs to be done.
 
-It is assumed that all data is transferred sequentially. This is especially important when
-it comes to future integration into the SHMAC system, because of the XY routing that the
-system uses. However, such an assumption also significantly simplifies the design of the
-DMA for use in shared-bus systems.
+It is assumed that all data is transferred sequentially. 
+This is especially important when it comes to future integration into the SHMAC system, because of the XY routing that the system uses.
+However, such an assumption also significantly simplifies the design of the DMA for use in shared-bus systems.
 
-\subsection{Design requirements}
+Virtual memory and cache coherency are assumed to be handled outside the \todo{and therefore not in the project. Mention?} DMA module.
+
+%\subsection{Design requirements}
+\subsection{Chosen functionality in design}
 
 It was decided on a couple of requirements for the DMA implementation.
 
@@ -54,18 +60,25 @@ It was decided on a couple of requirements for the DMA implementation.
 	able to transfer any amount of data from location A to B.
 	\item[Two channels.] This allows the DMA to have two separate transfers going
 	at the same time.
-	\item[Automatic channel allocation.] Channel allocation is done in hardware,
+	The number of channels is inspired by the Adapteva Epiphany \cite{epiphany}, where every DMA Module has two generic channel each.
+	With a high number of DMA Modules, a high number of channels in each DMA Module is not necessary.
+	\todo{This was actually not a requirement, and I think of describing it in State Machine. Consider removal}\item[Automatic channel allocation.] Channel allocation is done in hardware,
 	saving the CPU from the overhead of allocating and managing channels in software.
 	% I removed component-based implementation, because _every_ hardware design is component based. -K.
+	% 
+	% Yeah.... that makes sense. You should have taken TFE4140 last spring, not every student though of component based design, as they threw together a lot of code at top-level :-P
 \end{description}
 
 \subsection{DMA Architecture}
+
 The DMA module consists of several main components: a FIFO buffer that contains transfer
 requests from the CPU, a main controller that processes the requests, and two channels
 where the memory transfers are executed. The two channels work on independent transfer
 tasks. An arbiter is used to control access to the bus interface for the two channels.
 An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView}.
 \todo{CNTR = counter --- CTRL = controller, please fix the figure}
+The overview provided in this chapter is simplified.
+For more details, see appendix \todo{Yep!} INSERT REF HERE, FIND OUT HOW TO DO SEC-LABEL
 
 \begin{figure}[htb]
     \centering
@@ -77,29 +90,54 @@ An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView}.
 \subsubsection{Main Controller}
 The role of the main controller is to process incoming transfer requests, allocate and activate
 channels that are free to execute requests, monitor the channels, and send out an interrupt signal
-when a transfer is completed. 
+when a transfer is completed.
 
-The controller is implemented as a simple state machine, shown in figure \ref{fig:DMAControllerStateMachine}.
+The controller is implemented as a state machine, shown in figure \ref{fig:DMAControllerStateMachineSimple}.
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.8\textwidth]{Figures/DMA/StateMachineFinal}
+    \includegraphics[width=0.8\textwidth]{Figures/DMA/StateMachineFinalSimple}
     \caption{DMA Controller State Machine}
-    \label{fig:DMAControllerStateMachine}
+    \label{fig:DMAControllerStateMachineSimple}
 \end{figure}
+
+% IMPORTANT: Before you start talking about being too detailed, Kristian, my group got slaugthered in Computer Architecture project (TDT4260) for showing figures in result section without explaining them in the text. Do not count on figures to be self-explanatory. 
+Four states are used: IDLE; PROCESSING, WAIT and INTERRUPT.
+Whenever there is no activity and no incoming tranfer request, the state is IDLE.
+When activating a new channel for a requested transfer, the state is PROCESSING. There must be a request to handle, and at least a free channel to jump to this state from any other state.
+When at least one channel is active, the state is WAIT as long as no more channels can be activated (either due to no more requests or all channels already being active).
+When sending out interrupt signal, the state is INTERRUPT.
 
 \subsubsection{Channels}
 A channel is split into two parts: a part that is responsible for sending out load
 commands, and a storing part that issues a store commands. These ``subchannels''
 are called the load channel and store channel, respectively.
+The load channel will send out requests for loading data as long as its counter indicates that there is more data to be loaded. The store channel will request stores only when the loaded data is ready in the Data FIFO buffer.
+Each of these contains registers for calculating source addresses, destination addresses and for counters.
 \todo{Perhaps add an overview picture of channels here}
+
+\subsubsection{FIFO buffers}
+Two FIFO (First-In-First-Out) buffers are used in storing incoming transfer requests for the DMA Controller, and for storing incoming data loaded by the channels.
+The choice in using FIFO buffers are to enable the DMA Module to be implemented in systems where multiple requests or multiple datas may arrive before any is handled.
+
+\subsubsection{Arbiter}
+The arbiter arbitrates between the channels and the DMA Controller.
+Whenever any channel or the Controller request to send through data (addresses for loading/storing, data for storing or interrupt details), the arbiter must select one of these requests.
+The request will be acknowledged, and the data sent through.
+Interrupt requests have highest priority, followed by storing requests and then loading requests.
+The requesting DMA Controller or channel is updated when acknowledged (either ending INTERRUPT state, or decrementing a channel counter).
+
+\subsubsection{Comparator}
+This is simple combinatorics, used to compare expected data from all store channels with next ready data.
+Whenever there is a match, the correct store channel is notified, so that it can request storing the data with the destination address calculated from the channel.
 
 \subsubsection{Bus interaction system}
 In order for the DMA module to be as general as possible, it contains only a general
 interface for communicating with a bus system. An adapter is then used to connect
-the module to the bus system. This makes it possible to use the DMA module without
+the module to the bus system. \todo{Den setningen skjønte jeg ikke}This makes it possible to use the DMA module without
 changes in either SHMAC or a shared-bus system.
 
+\todo{Yaman told us to move this kind of discussion to the end of the report}
 \section{Alternative Simplified Designs} 
 
 In order for the design to be more appropriate for environments where there are
@@ -110,20 +148,20 @@ are possible.
 
 \subsection{Reducing the Controller Logic}
 It is possible to remove some of the main components from the DMA module and still
-have a functional DMA Module. The request FIFO and the DMA controller could be removed,
+have a functional DMA module. The request FIFO and the DMA controller could be removed,
 and a channel could be directly connected to the bus interface adapter with little
 extra work.
 
 This would slightly reduce the number of cycles that is needed to process a request.
 The system would also be smaller, including less combinatorics and registers.
 
-On the other hand, this makes the DMA Module much more dependent on the external system, since requests are processed and set externally, not by the DMA Module itself.
-Futhermore, removing the controller also constricts the possibility for the DMA Module itself to be able to process different types of requests.
+On the other hand, this makes the DMA module much more dependent on the external system, since requests are processed and set externally, not by the DMA module itself.
+Futhermore, removing the controller also constricts the possibility for the DMA module itself to be able to process different types of requests.
 In the minimum case, the only requests that it needs to handle are data transfer requests.
-But if the DMA Module is implemented in the SHMAC system, and one wants an as efficient data transfer as possible, one have to consider the option of dynamicly forwarding the request.
-An example would be forwarding to the DMA Module that is \todo{Mentioned in chapter 3.5.1., see figure 3.3} closest to both source and destination.
+But if the DMA module is implemented in the SHMAC system, and one wants an as efficient data transfer as possible, one have to consider the option of dynamicly forwarding the request.
+An example would be forwarding to the DMA module that is \todo{Mentioned in chapter 3.5.1., see figure 3.3} closest to both source and destination.
 
-Part of the purpose with the design is to make the DMA Module generic, so that it can implemented in different systems.
+Part of the purpose with the design is to make the DMA module generic, so that it can implemented in different systems.
 In order to make the design as generic as possible, a controller and an incoming request FIFO
 in case of multiple requests is therefore essential.
 
