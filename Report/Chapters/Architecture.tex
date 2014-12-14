@@ -1,18 +1,10 @@
 \chapter{Architecture}
 
-This chapter gives an overview of the architectural design that was chosen for the project.
-The Hasing Accelerator is first explained, followed by the DMA Module.
-The DMA Module 
+This chapter provides an overview of the architecture for the hashing
+accelerator and the DMA module designed in the project.
 
 \section{Design of the Hashing Accelerator}
 
-%<<<<<<< HEAD
-%Write about the hashing accelerator architecture here.
-
-%\subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
-%\todo{Wait, is this really architecture?!?}
-%The hashing modules can finish one round of hashing in 65 clock cycles. If
-%=======
 As noted in section \ref{sec:previous-hash}, there are many options for
 designing a hashing module. Searching the internet, several open-source
 implementations of such modules can be found. However, most of these
@@ -36,7 +28,6 @@ was decided not to attempt to improve the performance of the module.
 
 \subsection{Theoretical Maximum Performance}
 If the hashing module can finish hashing a block of data in 65 cycles and
-%>>>>>>> 409d81a765cc7b2dc87ca91feeb7e743e3b0a6f9
 every hash can be obtained from only one block of data, it is possible to
 obtain a finished hash every 65 clock cycles under ideal conditions. This
 translates into a maximum theoretical performance of 768230~H/s at a clock
@@ -85,8 +76,8 @@ It was decided on a couple of requirements for the DMA implementation.
 	able to transfer any amount of data from location A to B.
 	\item[Two channels.] This allows the DMA to have two separate transfers going
 	at the same time.
-	The number of channels is inspired by the Adapteva Epiphany \cite{epiphany}, where every DMA Module has two generic channel each.
-	With a high number of DMA Modules, a high number of channels in each DMA Module is not necessary.
+	The number of channels is inspired by the Adapteva Epiphany \cite{epiphany}, where every DMA module has two generic channel each.
+	With a high number of DMA modules, a high number of channels in each DMA module is not necessary.
 	\todo{This was actually not a requirement, and I think of describing it in State Machine. Consider removal}\item[Automatic channel allocation.] Channel allocation is done in hardware,
 	saving the CPU from the overhead of allocating and managing channels in software.
 	% I removed component-based implementation, because _every_ hardware design is component based. -K.
@@ -143,7 +134,7 @@ Each of these contains registers for calculating source addresses, destination a
 
 \subsubsection{FIFO buffers}
 Two FIFO (First-In-First-Out) buffers are used in storing incoming transfer requests for the DMA Controller, and for storing incoming data loaded by the channels.
-The choice in using FIFO buffers are to enable the DMA Module to be implemented in systems where multiple requests or multiple datas may arrive before any is handled.
+The choice in using FIFO buffers are to enable the DMA module to be implemented in systems where multiple requests or multiple datas may arrive before any is handled.
 
 \subsubsection{Arbiter}
 The arbiter arbitrates between the channels and the DMA Controller.

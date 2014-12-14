@@ -200,16 +200,16 @@ Nevertheless, in both cases the CPU still is responsible for data transfer itsel
 Direct Memory Access was developed in order to relieve the CPU of this work \cite[p~592]{computer-construction}.
 When a transfer request has been identified, the DMA module is activated by the CPU and provided with the necessary data for the task.
 While the DMA transfers the data, the CPU is free to work on other tasks, or to go to idle mode.
-When done with the transfer, the DMA Module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. How a DMA Engine should be implemented depends on the system environment.
+When done with the transfer, the DMA module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. How a DMA Engine should be implemented depends on the system environment.
 
 DMA was also designed to perform data transfers with less overhead than on a CPU \cite[p~318]{encyclopedia}
 A CPU is made for general-purpose work, and though the overheads depend on the CPU type, they include at least decrementing index and performing branching.
-\todo{Concider removal}This can be avoided in a DMA Module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
+\todo{Concider removal}This can be avoided in a DMA module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
 
 \subsection{Basic Requirements for DMA}
 For data transfer, the minimum knowledge required is the address (source and destination), data register and a word counter \cite[p~876-877]{encyclopedia}.
-A DMA Module will require these to perform a data transfer.
-Any other features may improve the DMA Module in terms of additional functions, integration with the system, and efficiency, but without the these basic needs it cannot perform data transfer.
+A DMA module will require these to perform a data transfer.
+Any other features may improve the DMA module in terms of additional functions, integration with the system, and efficiency, but without the these basic needs it cannot perform data transfer.
 
 % \subsection{DMA Module Functionality}
 % \todo{Documentation, documentation, documentation!}
@@ -237,7 +237,7 @@ There are three operation modes defined for how the DMA will interact with the i
     This is the slowest mode for the DMA itself, but also the one that allows the least slowdown for the CPU.
 \end{description}
 
-This is not really a property of the DMA Controller itself, but to the bus arbiter that handles bus requests on behalf of the DMA Module.
+This is not really a property of the DMA Controller itself, but to the bus arbiter that handles bus requests on behalf of the DMA module.
 The effect of this implementation may also differ between shared-media network and packet-switched network (such as in SHMAC).
 The principles remain the same; how high priority should DMA transfers have, compared to other transfers in the system. 
 Having transfers be as quick as possible, like in the burst mode, will make DMA transfers more efficient, but will also place the most restriction on the network for other modules and peripherals, should it occur at a time when many peripherals or tiles are attempting to perform data transfers.
@@ -277,7 +277,7 @@ A DMA channel is defined \cite[p.~422]{DMAOxford} as an interface with own sets 
 Channels can be programmed to interface for selected peripherals in the system.
 A channel is responsible for handling a requested data transfer, as it contains its own set of registers, used for controlling the operation and handling transfer addresses.
 The appropriate number of channels depends on the system.
-Microchip PIC24F \cite{microchip54} can have as many as 16 channels, while the Adapteva Epiphany \cite{epiphany} has 2 generic channel for each DMA Module.
+Microchip PIC24F \cite{microchip54} can have as many as 16 channels, while the Adapteva Epiphany \cite{epiphany} has 2 generic channel for each DMA module.
 
 %\subsection{System and Data Registers}
 %A DMA requires minimum a buffer for storing transfering data, as well as registers for load addresses and store addresses.
@@ -293,14 +293,14 @@ Microchip PIC24F \cite{microchip54} can have as many as 16 channels, while the A
 
 \subsection{Word or byte addressing}
 System memory is addressed either by word or by byte.
-The DMA Module used in the same system must follow the same type addressing.
-A generic DMA Module made for more than one system should offer the choice between word addressing or byte addressing, as part of the input configuration.
+The DMA module used in the same system must follow the same type addressing.
+A generic DMA module made for more than one system should offer the choice between word addressing or byte addressing, as part of the input configuration.
 
 \subsection{DMA Integration Considerations regarding SHMAC}
 \todo{Documentation, documentation, documentation... uhm... how do you document your separate ideas for the options?}
 
-If the DMA Module is to be integrated with SHMAC, there are some considerations that needs to be addressed.
-The DMA Module should be adapted to work as efficient as possible with SHMAC, and at the same time, it should also be possible to todo{Meh... sounds stupid. It's efficiency vs. generic that I'm trying to address} use it everywhere. 
+If the DMA module is to be integrated with SHMAC, there are some considerations that needs to be addressed.
+The DMA module should be adapted to work as efficient as possible with SHMAC, and at the same time, it should also be possible to todo{Meh... sounds stupid. It's efficiency vs. generic that I'm trying to address} use it everywhere. 
 A DMA module may be implemented as a separate shared DMA Controller tile in SHMAC, as seen in figure \ref{fig:DMATile}, or as an accelerator on an exisiting tile, for instance in a CPU tile, as seen in figure \ref{fig:DMAAccelerator}.
 
 \begin{figure}[h!]
@@ -313,7 +313,7 @@ A DMA module may be implemented as a separate shared DMA Controller tile in SHMA
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/DMA/Accelerator}
-    \caption{DMA Module Implemented as accelerator on an existing tile, on bottom left. Based upon figure from \cite{shmac-plan}}
+    \caption{DMA module Implemented as accelerator on an existing tile, on bottom left. Based upon figure from \cite{shmac-plan}}
     \label{fig:DMAAccelerator}
 \end{figure}
 
@@ -352,7 +352,7 @@ If two memory tiles are close to each other, while the active DMA tile is far aw
     \label{fig:DMASHMAC2}
 \end{figure}
 
-Figure \ref{fig:DMASHMAC2} shows an implementation where the DMA tile sets up a transfer between MEM1 and MEM2, by tricking MEM1 to believe that the request source is MEM2, not the DMA Module.
+Figure \ref{fig:DMASHMAC2} shows an implementation where the DMA tile sets up a transfer between MEM1 and MEM2, by tricking MEM1 to believe that the request source is MEM2, not the DMA module.
 This could be done by sending a request signal through MEM2 to MEM1 with packet info claiming that the requestor is MEM2.
 For this to work, both MEM1 and MEM2 need the sufficient hardware to perform load and store operations themselves.
 This way, the distance is as short as possible, but how does the DMA tile know when the transfer is done, considering that it is not control the transfer itself?
@@ -390,26 +390,26 @@ This makes this alternative likely the one with best performance, and also most 
 
 \subsection{Other issues regarding use of DMA}
 
-When implementing a DMA Module, there are issues regarding its cooperation with the system that must be handled.
+When implementing a DMA module, there are issues regarding its cooperation with the system that must be handled.
 Among these are cache coherency and virtual memory.
 These will be outside the scope of this project, but are relevant if a DMA module is to be implemented on SHMAC.
 
 \subsubsection{Cache coherency}
-Data that the DMA Module is tranfering may also exist on the cache of a CPU \cite[p~594-595]{computer-construction}.
+Data that the DMA module is tranfering may also exist on the cache of a CPU \cite[p~594-595]{computer-construction}.
 The DMA Controller only sees the data in the memory, and if the memory is overwritten, there will be different values in the cache and in the memory.
 This is the cache coherency problem.
 A way to deal with this is to invalidate the entry in the cache, and have the CPU reload data from the memory.
 % SHMAC currently avoids the coherency problem for multiple cores by having shared data in uncachable memory, but since this will reduce performance due to the memory-gap, it is likely that SHMAC in the future will implement a different solution on this.
 
 \subsubsection{Virtual memory}
-If the system has virtual memory, a problem is whether the DMA Module should work with virtual or physical addresses \cite[p~595]{computer-construction}.
+If the system has virtual memory, a problem is whether the DMA module should work with virtual or physical addresses \cite[p~595]{computer-construction}.
 The drawback with virtual addressing every address must be translated to physical addresses.
 But the problem with physical addresses is that the transfer cannot easily cross a page boundry.
 Contiguous data in the physical space is not necessarily contiguous in virtual memory.
 When using physical addressing, DMA transfers must be constrained within same memory page.
 
 \todo{Consider moving this entire paragraph to "future work"}
-A possible solution may be to make the DMA work on virtual addresses, by providing the DMA Module with with a small number of map entries that provide virtual-to-physical mapping for a transfer.
+A possible solution may be to make the DMA work on virtual addresses, by providing the DMA module with with a small number of map entries that provide virtual-to-physical mapping for a transfer.
 Another solution is for the operating system to break the DMA transfer into a series of transfers, each confined within a single physical page.
 The transfers are then chained together and handled by an intelligent DMA unit that executes the series of transfers. 
 For any of the solutions, the operating system must cooperate by not remapping the pages with a DMA transfer involving that page is in progress.
