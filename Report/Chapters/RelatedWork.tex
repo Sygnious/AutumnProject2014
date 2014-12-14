@@ -30,9 +30,13 @@ execution, using block RAM for the SHA constants and using specific types of
 adders or counters.
 
 \section{DMA}
-These are manuals or papers that describe the DMA Engine in other works.
+DMA modules are commonly found in systems-on-chip. Two such systems are the
+PIC24F family of microcontrollers from Microchip, representing a common
+single-core, low-power microcontroller, and the Adapteva Epiphany, a more
+exotic multicore architecture.
+
 \subsection{Microchip PIC24F device family}
-The company Microchip Inc is a provider of microcontrollers and analog semiconductors.
+Microchip Inc. is a provider of microcontrollers and analog semiconductors.
 Among their products is the PIC24F device family \cite{microchip1}, which includes a DMA Module of its own\cite{microchip54}.
 The module is located on the microcontroller data bus between the CPU and DMA-enabled peripherals, with direct access to SRAM.
 The DMA controller is composed of multiple intedendent DMA channel controllers, or simply channels.
