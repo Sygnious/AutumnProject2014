@@ -1,11 +1,19 @@
 \chapter{Conclusion}
 
 The performance gains attained from using an accelerator in conjunction with a DMA
-proves the usefulness of using an accelerator for SHA-256 hashing.
+proves the usefulness of using an accelerator for SHA-256 hashing. Although the
+performance seen when enabling the DMA was not as expected due to the addressing
+requirements of the AXI4 bus used in the test system, it still allows the CPU to
+do other work or enter a sleep state while memory is being transferred, thus
+the DMA is important to the energy efficiency of the system.
 
 With the modules inserted into SHMAC, a full bitcoin mining system can be
 constructed that can take advantage of power savings from not having to do
 the hashing and data transfers involved in software. Using SHMAC for mining
 bitcoins will possibly be the very first time a heterogeneous architecture
 is used for bitcoin mining.
+
+\section{Future Work}
+\label{sec:future-work}
+
 
