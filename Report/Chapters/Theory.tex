@@ -183,7 +183,7 @@ module, and later be extended to work as a general DMA in the SHMAC architecture
 \subsection{The Purpose of DMA}
 
 Without a DMA device, the CPU must do all data requested data transfers.
-Processors would either have to rely on polling or interrupts \cite[p~589]{computer-construction}.
+Processors would either have to rely on polling or interrupts \cite{computer-construction}.
 In polling, the processor checks the peripherals for requests, and in most cases the are no requests.
 By using interrupts, one would spare the processor the inefficient amount of work done by polling, by letting interrupt signals into the CPU alert it for possible requests.
 Nevertheless, in both cases the CPU still is responsible for data transfer itself.
@@ -197,17 +197,17 @@ Nevertheless, in both cases the CPU still is responsible for data transfer itsel
 % I mention "alert to possible request", does that satisfy?
 % - T
 
-Direct Memory Access was developed in order to relieve the CPU of this work \cite[p~592]{computer-construction}.
+Direct Memory Access was developed in order to relieve the CPU of this work \cite{computer-construction}.
 When a transfer request has been identified, the DMA module is activated by the CPU and provided with the necessary data for the task.
 While the DMA transfers the data, the CPU is free to work on other tasks, or to go to idle mode.
 When done with the transfer, the DMA module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. How a DMA Engine should be implemented depends on the system environment.
 
-DMA was also designed to perform data transfers with less overhead than on a CPU \cite[p~318]{encyclopedia}
+DMA was also designed to perform data transfers with less overhead than on a CPU \cite{encyclopedia}
 A CPU is made for general-purpose work, and though the overheads depend on the CPU type, they include at least decrementing index and performing branching.
 \todo{Concider removal}This can be avoided in a DMA module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
 
 \subsection{Basic Requirements for DMA}
-For data transfer, the minimum knowledge required is the address (source and destination), data register and a word counter \cite[p~876-877]{encyclopedia}.
+For data transfer, the minimum knowledge required is the address (source and destination), data register and a word counter \cite{encyclopedia}.
 A DMA module will require these to perform a data transfer.
 Any other features may improve the DMA module in terms of additional functions, integration with the system, and efficiency, but without the these basic needs it cannot perform data transfer.
 
@@ -222,12 +222,12 @@ Any other features may improve the DMA module in terms of additional functions, 
 \subsection{Operational Modes}
 There are three operation modes defined for how the DMA will interact with the interconnect network:
 \begin{description}
-    \item[Burst mode.] \cite[p~876-877]{encyclopedia}
+    \item[Burst mode.] \cite{encyclopedia}
     The DMA has full ownership of the bus as long as the transfer is under execution.
     This is the fastest transfer mode for a DMA module, but it limits bus access for other
     peripherals as long as the DMA is executing the transfer.
 
-    \item[Cycle stealing mode.] \cite[p~876-877]{encyclopedia}
+    \item[Cycle stealing mode.] \cite{encyclopedia}
     The DMA requests the bus as in burst mode, but relents control of the bus after transferring
     each byte of data. It will then re-request access to the bus for each transmission.
     In this way, the CPU and other peripherals can get earlier access to the bus if they need to.

@@ -125,7 +125,7 @@ When at least one channel is active, the state is WAIT as long as no more channe
 When sending out interrupt signal, the state is INTERRUPT.
 
 \subsubsection{Channels}
-A channel is split into two parts: a part that is responsible for sending out load
+Each channel is split into two parts: a part that is responsible for sending out load
 commands, and a storing part that issues a store commands. These ``subchannels''
 are called the load channel and store channel, respectively.
 The load channel will send out requests for loading data as long as its counter indicates that there is more data to be loaded. The store channel will request stores only when the loaded data is ready in the Data FIFO buffer.
