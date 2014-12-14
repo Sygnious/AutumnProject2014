@@ -2,20 +2,38 @@
 
 \section{Design of the Hashing Accelerator}
 
-Write about the hashing accelerator architecture here.
+As noted in section \ref{sec:previous-hash}, there are many options for
+designing a hashing module. Searching the internet, several open-source
+implementations of such modules can be found. However, most of these
+take advantage of various optimizations which makes the code hard to
+read or unsuitable for use in an FPGA.
 
-\subsection{Theoretical Maximum Performance}\todo{Introduce the modules first}
+It was decided to create a new hashing module, using optimizations only
+if neccessary, focusing on creating well-written and easy-to-read source
+code that can later be easily extended or modified.
 
-The hashing modules can finish one round of hashing in 65 clock cycles. If
+To do this, a simple module was constructed that runs one iteration of
+the compression function each cycle, calculating the hash of one block
+of data in 64 cycles with one additional cycle added for creating the
+final hash from the intermediate values from the previous round (see
+section \ref{sec:hashing-algo} for details).
+
+Using no optimizations yielded a hashing accelerator module that can
+run at 50~MHz, the same clock frequency as used in the SHMAC system.
+Because of this, and in order to preserve the readability of the code, it
+was decided not to attempt to improve the performance of the module.
+
+\subsection{Theoretical Maximum Performance}
+If the hashing module can finish hashing a block of data in 65 cycles and
 every hash can be obtained from only one block of data, it is possible to
-obtain a hash every 65 clock cycles under ideal conditions. This translates
-into a maximum theoretical performance of 768230~H/s at a clock frequency of
-50~MHz.
+obtain a finished hash every 65 clock cycles under ideal conditions. This
+translates into a maximum theoretical performance of 768230~H/s at a clock
+frequency of 50~MHz.
 
-However, the modules do not exist in a vacuum, and data needs to be transferred
-between the modules and a controller, such as a microprocessor. The hashing tiles
-are connected to the rest of the system using an AXI4 lite interface. Transfers
-on the AXI bus takes at least three cycles for writes and two cycles for reads.
+However, in real-life, the modules do not exist in a vacuum, and data needs to be transferred
+between the modules and a controller, such as a microprocessor. If the hashing tiles
+are connected to the rest of the system using an AXI4 lite interface, transfers
+takes at least three cycles for writes and two cycles for reads.
 It is assumed that no burst transfers are used and that only one transaction
 can be executed at a time, corresponding with the requirements for the interface.
 
@@ -31,7 +49,6 @@ a one-block input size and an ideal AXI4 bus. Not considering the additional ove
 from processing in the microprocessor, such as when handlig the interrupt when the
 hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
 complete, bringing the maximum theoretical performance down to at most 378787~H/s.
-
 
 \section{Design of the DMA Module}
 \label{sec:dma-architecture}
