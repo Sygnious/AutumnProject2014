@@ -1,9 +1,42 @@
 \chapter{Related Work}
-\section{Hashing}
+
+There already exists many implementations of accelerators for various hashing
+algorithms and DMA modules.
+
+Accelerators for various hashing algorithms are often used in chips that need
+access to quick cryptography implementations for various purposes. DMA modules are
+found in most system-on-chip systems because of their obvious advantages.
+
+\section{Hashing Accelerators}
+\label{sec:previous-hash}
+Many implementations of hashing accelerators exist and are in use in various
+systems today. Because of this, there have been some research on different
+architectures and optimizations for the accelerators.
+
+Since the SHA-256 algorithm consists of a loop that applies the compression
+algorithm described in section \ref{sec:sha-compr} to the extended message
+block, it is tempting to look at ways of pipelining the algorithm to achieve
+a higher throughput. However, as noted in \cite{sha-opt}, this is difficult
+due to the way the algorithm is constructed. Nevertheless, \cite{dadda-sha}
+presents a quasi-pipelined design.
+
+Without pipelining the design, there are other optimizations suggested in
+\cite{sha-opt}, such as unrolling the core loop of the algorithm, which
+increases the throughput of the module but creates a longer critical path,
+lowering the maximum clock frequency of the circuit.
+
+Also suggested are moving certain operations to other stages of the algorithm
+execution, using block RAM for the SHA constants and using specific types of
+adders or counters.
+
 \section{DMA}
-These are manuals or papers that describe the DMA Engine in other works.
+DMA modules are commonly found in systems-on-chip. Two such systems are the
+PIC24F family of microcontrollers from Microchip, representing a common
+single-core, low-power microcontroller, and the Adapteva Epiphany, a more
+exotic multicore architecture.
+
 \subsection{Microchip PIC24F device family}
-The company Microchip Inc is a provider of microcontrollers and analog semiconductors.
+Microchip Inc. is a provider of microcontrollers and analog semiconductors.
 Among their products is the PIC24F device family \cite{microchip1}, which includes a DMA Module of its own\cite{microchip54}.
 The module is located on the microcontroller data bus between the CPU and DMA-enabled peripherals, with direct access to SRAM.
 The DMA controller is composed of multiple intedendent DMA channel controllers, or simply channels.
