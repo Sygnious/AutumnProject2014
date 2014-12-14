@@ -2,15 +2,31 @@
 
 \chapter{DMA Details}
 
-This chapter contains additional details about the DMA implementation.
+This appendix contains additional details about the DMA implementation, and serves to give a deeper understanding of how each component in the DMA works in details..
 
-\section{Additional Module Descriptions}
+\section{Topview}
+Figure \ref{TopViewFinalSimple2IO} shows the entire DMA Module, with its components, inputs and outputs.
 
-% DMA controller states
-%\section{States}
-%The current states are IDLE, PROCESSING, WAIT and INTERRUPT.
-%
-%\begin{itemize}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Figures/DMA/TopViewFinalSimple2IO}
+    \caption{Topview of the DMA Module, with its inputs and outputs}
+    \label{fig: TopViewFinalSimple2IO}
+\end{figure}
+
+\section{DMA Controller State Machine}
+
+The DMA Controller is implemented as a state machine.
+It is responsible for handling requests to do data transfers, monitoring active channels, and sending out interrupt signal when a channel has completed its data transfer.
+The state machine can be seen in figure \ref{}.
+
+
+
+\subsection{States}
+The states used in the state machine are IDLE, PROCESSING, WAIT AND INTERRUPT
+
+\begin{itemize}
 %    \item \textbf{IDLE} - When there are no requests for data transfer.
 %    The DMA Controller waits until a request signal is received.
 %    \item \textbf{PROCESSING} - When the controller has received a request, and there is a free channel to execute the request.

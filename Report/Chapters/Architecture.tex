@@ -91,16 +91,16 @@ The DMA module consists of several main components: a FIFO buffer that contains 
 requests from the CPU, a main controller that processes the requests, and two channels
 where the memory transfers are executed. The two channels work on independent transfer
 tasks. An arbiter is used to control access to the bus interface for the two channels.
-An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView}.
+An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView2}.
 \todo{CNTR = counter --- CTRL = controller, please fix the figure}
 The overview provided in this chapter is simplified.
 For more details, see appendix \todo{Yep!} INSERT REF HERE, FIND OUT HOW TO DO SEC-LABEL
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.8\textwidth]{Figures/DMA/TopViewFinalSimple}
+    \includegraphics[width=1\textwidth]{Figures/DMA/TopViewFinalSimple2}
     \caption{DMA module overview}
-    \label{fig:DMATopView}
+    \label{fig:DMATopView2}
 \end{figure}
 
 \subsubsection{Main Controller}
@@ -112,9 +112,9 @@ The controller is implemented as a state machine, shown in figure \ref{fig:DMACo
 
 \begin{figure}[htb]
     \centering
-    \includegraphics[width=0.8\textwidth]{Figures/DMA/StateMachineFinalSimple}
+    \includegraphics[width=1\textwidth]{Figures/DMA/StateMachineFinalSimple}
     \caption{DMA Controller State Machine}
-    \label{fig:DMAControllerStateMachineSimple}
+    \label{fig:DMAControllerStateMachineSimple2}
 \end{figure}
 
 % IMPORTANT: Before you start talking about being too detailed, Kristian, my group got slaugthered in Computer Architecture project (TDT4260) for showing figures in result section without explaining them in the text. Do not count on figures to be self-explanatory. 
@@ -153,9 +153,9 @@ interface for communicating with a bus system. An adapter is then used to connec
 the module to the bus system. This makes it possible to connect the DMA module to
 different kinds of busses by simply writing an adapter for the desired system.
 
-\todo{Yaman told us to move this kind of discussion to the end of the report}
-\section{Alternative Simplified Designs} 
 
+\section{Alternative Simplified Designs} 
+\todo{Yaman told us to move this kind of discussion to the end of the report}
 In order for the design to be more appropriate for environments where there are
 constraints on, for example, logic resources or size of the module, certain simplifications
 are possible.
