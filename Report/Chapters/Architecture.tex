@@ -148,10 +148,10 @@ This is simple combinatorics, used to compare expected data from all store chann
 Whenever there is a match, the correct store channel is notified, so that it can request storing the data with the destination address calculated from the channel.
 
 \subsubsection{Bus interaction system}
-In order for the DMA module to be as general as possible, it contains only a general
+In order for the DMA module to be as general as possible, it contains only a generic
 interface for communicating with a bus system. An adapter is then used to connect
-the module to the bus system. \todo{Den setningen skjønte jeg ikke}This makes it possible to use the DMA module without
-changes in either SHMAC or a shared-bus system.
+the module to the bus system. This makes it possible to connect the DMA module to
+different kinds of busses by simply writing an adapter for the desired system.
 
 \todo{Yaman told us to move this kind of discussion to the end of the report}
 \section{Alternative Simplified Designs} 
