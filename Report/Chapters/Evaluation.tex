@@ -5,11 +5,11 @@ In order to evaluate the performance increase obtained when using a dedicated
 hashing accelerator, a system-on-chip test system was constructed using Xilinx' Vivado
 development studio, version 2014.3.
 
-\begin{figure}[ht]
+\begin{sidewaysfigure}[ht]
 	\includegraphics[width=0.95\textwidth]{Figures/testsystem-vivado.png}
 	\caption{Overview of the initial test system}
 	\label{fig:testsystem-vivado}
-\end{figure}
+\end{sidewaysfigure}
 
 The test system is controlled by a MicroBlaze microprocessor, configured to
 include the optional barrel shifter, integer divider and pattern comparator extensions.
@@ -58,10 +58,12 @@ of the system.
 
 During the initial round of testing, it was discovered that using multiple hashing
 modules did not increase the amount of hashes performed per second. The number remained
-constant, while the total amount of hashing work was divided fairly evenly between
+constant, while the total amount of hashing work was divided evenly between
 the hashing modules. The maximum performance attained did not exceed 15~100~H/s.
 It was discovered that the reason for this was that the bus system used did not have
-enough bandwidth to sustain a higher amount of performance.
+enough bandwidth to sustain a higher amount of performance. Alternative bus topologies
+could be used to alleviate this issue, but is left for future work and described in
+section \ref{sec:future-work}.
 
 Since using multiple hashing modules would not provide any benefit, they were removed
 from the test system to simplify testing. In addition, removing the extraneous modules
@@ -70,11 +72,11 @@ using the XilKernel for multi-threading.
 
 The revised test system is illustrated in figure \ref{fig:testsystem-vivado-final}.
 
-\begin{figure}[ht]
+\begin{sidewaysfigure}[ht]
 	\includegraphics[width=0.95\textwidth]{Figures/testsystem-vivado-final.png}
 	\caption{Overview of the final test system}
 	\label{fig:testsystem-vivado-final}
-\end{figure}
+\end{sidewaysfigure}
 
 \section{Results}
 
