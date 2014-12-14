@@ -3,23 +3,44 @@
 \section{Heterogeneous Architectures}
 \label{sec:heterogeneous}
 
-About why heterogeneous architectures and SHMAC are good.
+Moore's law is an important concept for computer designers, specifying that the
+number of transistors on a chip doubles approximately every second year. However,
+as transistors are getting smaller, the amount of power they use have not been
+decreasing at the same rate \cite{dark-silicon}.
 
-% I'll write this one -KKS.
+This has led to an effect called dark silicon; it is simply not possible to
+power all the transistors on a chip at the same time --- causing parts of
+a chip to need to be turned off.
 
-\subsection{SHMAC}
-\subsection{Current Interconnect System in SHMAC}
+Heterogeneous architectures attempt to alleviate the dark silicon effect by
+providing a number of different processing elements. These can be specialized for
+doing special tasks by adding accelerators or implementing separate computing
+elements for solving certain problems.
 
-SHMAC implements a 2D mesh-based Network-on-a-Chip (NoC) interconnection network. 
-Currently, the system uses dimension-ordered (XY) routing, and store-and-forward
-switching with on/off flow control. The switching routine can be replaced in the
-future, should the current routine be found to cause performance bottlenecks \cite{shmac-plan}.
+\subsection{The Single-ISA Heterogeneous MAny-core Computer}
+\label{sec:shmac}
+The Single-ISA Heterogeneous MAny-core Computer, SHMAC, is the Energy Efficient Computing Systems group
+at the Norwegian University of Science and Technology's research project for investigating the
+challenges and issues related to creating a heterogeneous computer architecture.
 
-\todo{Make sure the "goal"-part is valid}
-SHMAC does not implement DMA today, and data transfers are performed by the
-on-tile processors. A goal of this project is to explore the option of implementing
-a DMA module and testing it in a shared-bus system, before creating a prototype that
-can be implemented in SHMAC.
+The architecture is tile-based, with a number of processing elements organized
+in a grid and connected to their nearest neighbours. The tiles can be of varying
+types, such as processor tiles or memory tiles. Processor tiles can contain
+accelerators for accelerating various tasks, but all implement the same basic
+ISA \cite{shmac-plan}.
+
+%\subsection{Current Interconnect System in SHMAC}
+%
+%SHMAC implements a 2D mesh-based Network-on-a-Chip (NoC) interconnection network. 
+%Currently, the system uses dimension-ordered (XY) routing, and store-and-forward
+%switching with on/off flow control. The switching routine can be replaced in the
+%future, should the current routine be found to cause performance bottlenecks \cite{shmac-plan}.
+%
+%\todo{Make sure the "goal"-part is valid}
+%SHMAC does not implement DMA today, and data transfers are performed by the
+%on-tile processors. A goal of this project is to explore the option of implementing
+%a DMA module and testing it in a shared-bus system, before creating a prototype that
+%can be implemented in SHMAC.
 
 \section{The Bitcoin Currency}
 \label{sec:bitcoins}
@@ -69,6 +90,7 @@ and collision resistant, meaning that it should not be practical to find two
 different sets of input data that produces the same output hash \cite{sha-spec}.
 
 \subsection{The SHA-256 Hashing Algorithm}
+\label{sec:hashing-algo}
 
 The SHA-256 algorithm is a member of the set of algorithms referred to as the SHA-2 standard.
 These are described in \cite{fips180-4} and consists of algorithms for producing hashes with lengths of 224, 256, 384 and 512 bits.
@@ -76,8 +98,6 @@ The algorithms use simple operations, limited to shifts, rotates, xor, and unsig
 in addition to a lookup-table of constants, which allow for high-speed implementations in both
 software and hardware. The different algorithms differ in how and with what parameters the various
 operations are invoked.
-
-\subsection{SHA-256 in Detail}
 
 SHA-256 is the algorithm used in cryptocoin mining. It operates on blocks of 512 bits
 and keeps a 256-bit intermediate hash value as state.
@@ -109,6 +129,7 @@ bits \footnote{Curiously, \cite{sha-spec} defines the operator $R$ as shift and 
 We use the more intuitive definitions.}.
 
 \subsubsection{The Compression Function}
+\label{sec:sha-compr}
 The compression function is the core of the SHA-256 algorithm. It uses a look-up table
 of 64 constants, $K_j$, and the following functions when calculating the new intermediate
 hash values:
