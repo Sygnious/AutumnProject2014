@@ -103,26 +103,23 @@ running on the MCU.
 
 \section{Evaluation}
 
-TODO:
-This section will include an evaluation of the gains when we have measured the software
-hashing performance and gotten results with the new DMA module.
+The results clearly shows the benefit of using a hashing module over doing hashing in software,
+obtaining a speedup of 19 times is over the software implementation.
 
-It will maybe also include a comparison to other bitcoin mining hardware, although
-no one is mining bitcoins with a 50~MHz processor anywhere, so a comparison might
-be hard :-)
+However, using the DMA for data transfers causes a reduction in performance, although it is still
+an improvement of 14,4 times over the software implementation. The reason for this is that the
+DMA module was initially designed to work with a word addressed bus system, increasing the
+address by 1 word for each bus request. This resulted in four requests per 32-bit word in
+the test system, which caused the reduction in performance.
 
-%\subsection{Measuring DMA Performance}
-%
-%In the test system, a load takes at least 2 cycles, and a store takes at least 3 cycles.
-%Branching and incrementation takes at least 1 cycle each.
-%For $M$ data, the total transfer for the CPU takes at least $(3 + 2 + 1 + 1)M = 7M$ cycles, for the loop only.
-%
-%If a DMA module is present, it can relieve the CPU for this work, letting the CPU focus on other work, saving it $7M$ cycles for each transfer, excepting overhead such as activating the DMA module and handling interrupts when done.
-%In addition, a well designed DMA module may have less overhead, enabling better \todo{With more than one channel active, a transfer does not necessarily become faster by itself} throughput.
-%
-%A program with $M$ data to be transferred will be used, and the number of clock cycles spent on other work than data transfer for the CPU will be measured.
-%A comparison between running with and without the DMA module will be done, to see if the CPU can spend at least $7M$ more cycles of work on other tasks.
-%
-% This refers to the test programme outlined in the Theory section, insert a reference or move the section from Theory. -K.
-% Also, I think our existing test measures the improvements well enough and gives numbers to calculate how much work the CPU can do while the DMA works. -K.
+However, the speed-up when using no DMA as compared to using the DMA to transfer data is only
+1,3 times, which is not enough to discourage use of the DMA even when the DMA does more transfers
+than neccessary. Since the CPU can sleep or work on other tasks, using the inefficient DMA may
+still be more energy efficient than not using a DMA at all.
+
+It is expected that using a DMA with proper addressing will increase the performance obtained
+with the DMA over the performance obtained without the DMA; assuming the bus is the bottleneck,
+a DMA which uses proper addressing will issue only 1 request per word instead of 4, causing
+less buss congestion and higher performance, possibly increasing the performance by up to
+four times.
 
