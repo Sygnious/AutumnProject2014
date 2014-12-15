@@ -183,10 +183,10 @@ module, and later be extended to work as a general DMA in the SHMAC architecture
 \subsection{The Purpose of DMA}
 
 Without a DMA device, the CPU must do all data requested data transfers.
-Processors would either have to rely on polling or interrupts \cite{computer-construction}.
+Processors would either have to rely on polling or interrupts
 In polling, the processor checks the peripherals for requests, and in most cases the are no requests.
 By using interrupts, one would spare the processor the inefficient amount of work done by polling, by letting interrupt signals into the CPU alert it for possible requests.
-Nevertheless, in both cases the CPU still is responsible for data transfer itself.
+Nevertheless, in both cases the CPU still is responsible for data transfer itself. \cite{computer-construction}.
 
 % Devices do not directly ask the CPU to transfer data for them, they usually cause
 % interrupts when something interesting has happened; it is then up to the CPU to
@@ -197,14 +197,16 @@ Nevertheless, in both cases the CPU still is responsible for data transfer itsel
 % I mention "alert to possible request", does that satisfy?
 % - T
 
-Direct Memory Access was developed in order to relieve the CPU of this work \cite{computer-construction}.
+Direct Memory Access was developed in order to relieve the CPU of this work.
 When a transfer request has been identified, the DMA module is activated by the CPU and provided with the necessary data for the task.
 While the DMA transfers the data, the CPU is free to work on other tasks, or to go to idle mode.
-When done with the transfer, the DMA module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. How a DMA Engine should be implemented depends on the system environment.
+%When done with the transfer, the DMA module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. 
+How a DMA engine should be implemented depends on the system environment. \cite{computer-construction}
 
 DMA was also designed to perform data transfers with less overhead than on a CPU \cite{encyclopedia}
 A CPU is made for general-purpose work, and though the overheads depend on the CPU type, they include at least decrementing index and performing branching.
-\todo{Concider removal}This can be avoided in a DMA module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
+\todo{Meh...}A DMA module on the other hand is specifically designed for data transfers. 
+%\todo{Concider removal}This can be avoided in a DMA module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
 
 \subsection{Basic Requirements for DMA}
 For data transfer, the minimum knowledge required is the address (source and destination), data register and a word counter \cite{encyclopedia}.
@@ -222,19 +224,19 @@ Any other features may improve the DMA module in terms of additional functions, 
 \subsection{Operational Modes}
 There are three operation modes defined for how the DMA will interact with the interconnect network:
 \begin{description}
-    \item[Burst mode.] \cite{encyclopedia}
+    \item[Burst mode.] 
     The DMA has full ownership of the bus as long as the transfer is under execution.
     This is the fastest transfer mode for a DMA module, but it limits bus access for other
-    peripherals as long as the DMA is executing the transfer.
+    peripherals as long as the DMA is executing the transfer. \cite{encyclopedia}
 
-    \item[Cycle stealing mode.] \cite{encyclopedia}
+    \item[Cycle stealing mode.] 
     The DMA requests the bus as in burst mode, but relents control of the bus after transferring
     each byte of data. It will then re-request access to the bus for each transmission.
-    In this way, the CPU and other peripherals can get earlier access to the bus if they need to.
+    In this way, the CPU and other peripherals can get earlier access to the bus if they need to. \cite{encyclopedia}
 
-    \item[Transparent mode.] \cite{dma-lecture}
+    \item[Transparent mode.] 
     The DMA monitors the bus and transfers data only when the CPU or other modules are not performing operations that requires the bus.
-    This is the slowest mode for the DMA itself, but also the one that allows the least slowdown for the CPU.
+    This is the slowest mode for the DMA itself, but also the one that allows the least slowdown for the CPU. \cite{dma-lecture}
 \end{description}
 
 This is not really a property of the DMA Controller itself, but to the bus arbiter that handles bus requests on behalf of the DMA module.
@@ -247,7 +249,7 @@ the same time, DMA transfers will be slower. Deciding the priority of a DMA tran
 however, will be up to the routers in the network, \todo{True, but should this not be stated in the chapter where we explain our chosen designs?} and is therefore outside the scope of this project.
 
 \subsection{Transfer types}
-Transfer types \cite{microchip54} describes how the source and destination addresses are used in the transfer.
+Transfer types describes how the source and destination addresses are used in the transfer. \cite{microchip54}
 Some commonly used options are:
 \begin{description}
     \item[Fixed-to-fixed transfers.]
@@ -269,15 +271,14 @@ Some commonly used options are:
     serial communications peripheral.
 \end{description}
 
-More complicated DMAs also support \todo{Think it's mentioned in \cite{microchip54}, but it doesn't hurt to check} additional modes, such as using more complex patterns
-when modifying the source and destination addresses or modifying the data in-flight.
+%Some DMAs also support \todo{Think it's mentioned in \cite{microchip54}, but it doesn't hurt to check} additional modes \cite{microchip54}, such as using more complex patterns when modifying the source and destination addresses or modifying the data in-flight.
 
 \subsection{DMA Channel}
-A DMA channel is defined \cite[p.~422]{DMAOxford} as an interface with own sets of registers.
+A DMA channel is defined as an interface with own sets of registers. \cite{DMAOxford}
 Channels can be programmed to interface for selected peripherals in the system.
 A channel is responsible for handling a requested data transfer, as it contains its own set of registers, used for controlling the operation and handling transfer addresses.
 The \todo{Um... how does one define "appropriate"? Consider removal of that word} appropriate number of channels depends on the system.
-Microchip PIC24F \cite{microchip54} can have as many as 16 channels, while the Adapteva Epiphany \cite{epiphany} has 2 generic channel for each DMA module.
+Microchip PIC24F can have as many as 16 channels \cite{microchip54}, while the Adapteva Epiphany \cite{epiphany} has 2 generic channel for each DMA module.
 
 %\subsection{System and Data Registers}
 %A DMA requires minimum a buffer for storing transfering data, as well as registers for load addresses and store addresses.
@@ -402,11 +403,11 @@ A way to deal with this is to invalidate the entry in the cache, and have the CP
 % SHMAC currently avoids the coherency problem for multiple cores by having shared data in uncachable memory, but since this will reduce performance due to the memory-gap, it is likely that SHMAC in the future will implement a different solution on this.
 
 \subsubsection{Virtual memory}
-If the system has virtual memory, a problem is whether the DMA module should work with virtual or physical addresses \cite[p~595]{computer-construction}.
+If the system has virtual memory, a problem is whether the DMA module should work with virtual or physical addresses 
 The drawback with virtual addressing every address must be translated to physical addresses.
 But the problem with physical addresses is that the transfer cannot easily cross a page boundry.
 Contiguous data in the physical space is not necessarily contiguous in virtual memory.
-When using physical addressing, DMA transfers must be constrained within same memory page.
+When using physical addressing, DMA transfers must be constrained within same memory page. \cite{computer-construction}.
 
 \todo{Consider moving this entire paragraph to "future work"}
 A possible solution may be to make the DMA work on virtual addresses, by providing the DMA module with with a small number of map entries that provide virtual-to-physical mapping for a transfer.
@@ -414,13 +415,12 @@ Another solution is for the operating system to break the DMA transfer into a se
 The transfers are then chained together and handled by an intelligent DMA unit that executes the series of transfers. 
 For any of the solutions, the operating system must cooperate by not remapping the pages with a DMA transfer involving that page is in progress.
 
-SHMAC does currently not implement virtual memory, but it is listed as a future task \cite[p~10]{shmac-plan}.
+SHMAC does currently not implement virtual memory, but it is listed as a future task \cite{shmac-plan}.
 Therefore, this will be a future issue that needs to be solved if both DMA and virtual memory are to be used in SHMAC. 
 
 \subsubsection{Multiple DMA requests operating on the same data field}
 \todo{YUP!}
 Yaman mentioned this. Write something sensible if time, or just wipe this out.
-
 
 % - Cache coherency is not an issue when there is no cache :-) -K.
 % 
