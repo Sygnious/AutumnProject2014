@@ -11,19 +11,26 @@ With the modules inserted into SHMAC, a full bitcoin mining system can be
 constructed that can take advantage of power savings from not having to do
 the hashing and data transfers involved in software. Using SHMAC for mining
 bitcoins will possibly be the very first time a heterogeneous architecture
-is used for bitcoin mining.
+is used for bitcoin mining, and will nevertheless provide useful insight
+into how complex software can benefit from running on a heterogeneous
+architecture.
 
 \section{Future Work}
 \label{sec:future-work}
 
-\subsection{Simplified DMA Designs} 
-In order for the design to be more appropriate for environments where there are
-constraints on, for example, logic resources or size of the module, certain simplifications
+Although the project shows the improvements obtained using an accelerator
+for hashing and data transfer, further improvements can be obtained.
+
+\subsection{Optimizing the Hashing Accelerator}
+By optimizing the hashing accelerator, it is possible to create an accelerator
+that can run on higher clock speeds, increasing the throughput of a system that
+is dependent on high-speed hashing, such as a bitcoin mining system.
+
+\subsection{Simplifying the DMA design} 
+In order for the design of the DMA to be more appropriate for environments where
+there are constraints on, for example, logic resources, certain simplifications
 are possible.
 
-\todo{Consider making diagrams to show the alternatives}
-
-\subsection{Reducing the Controller Logic}
 It is possible to remove some of the main components from the DMA module and still
 have a functional DMA module. The request FIFO and the DMA controller could be removed,
 and a channel could be directly connected to the bus interface adapter with little
@@ -42,15 +49,14 @@ Part of the purpose with the design is to make the DMA module generic, so that i
 In order to make the design as generic as possible, a controller and an incoming request FIFO
 in case of multiple requests is therefore essential.
 
-\subsection{Using Channels with a Private Data Buffer}
-Instead of using a channel with shared data buffer, where the data output owned by
-one of the channels is sent straight through the arbiter, it could be sent to a
-private buffer inside the correct channel.
-\todo{An explanation of the shared/private buffers will need to be added somewhere}
+\subsection{Improving the Bus Network}
+Since the bus network has been determined to be the bottleneck of the system, different topologies
+can provide a less congested bus between memory or the hashing accelerator. Different topologies
+would have to be investigated, but one option is to place the hashing module and some memory together
+with a DMA on a private bus separate from the rest of the system could allow these modules to
+communicate without having to deal with interference from other sources of bus traffic.
 
-\todo{Expand when you wake up from bed. Good night}
-Pros: Secure data
-
-Cons: More unnecessary combinatorics + no better throughput
-
+However, in a heterogeneous system such as SHMAC, options that might work well in a shared-bus
+system might not provide the same benefits, so an analysis would have to be made in the context
+of SHMAC as well.
 
