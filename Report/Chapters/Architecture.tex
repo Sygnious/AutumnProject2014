@@ -6,23 +6,23 @@ accelerator and the DMA module designed in the project.
 \section{Design of the Hashing Accelerator}
 
 As noted in section \ref{sec:previous-hash}, there are many options for
-designing a hashing module. Searching the internet, several open-source
+designing a hashing module. Searching the internet, several existing open-source
 implementations of such modules can be found. However, most of these
 take advantage of various optimizations which makes the code hard to
 read or unsuitable for use in an FPGA.
 
-It was decided to create a new hashing module, using optimizations only
-if neccessary, focusing on creating well-written and easy-to-read source
+It was therefore decided to create a new hashing module, using optimizations
+only if neccessary, focusing on creating well-written and easy-to-read source
 code that can later be easily extended or modified.
 
 To do this, a simple module was constructed that runs one iteration of
 the compression function each cycle, calculating the hash of one block
-of data in 64 cycles with one additional cycle added for creating the
+of data in 64 cycles with an additional cycle added for creating the
 final hash from the intermediate values from the previous round (see
 section \ref{sec:hashing-algo} for details).
 
 Using no optimizations yielded a hashing accelerator module that can
-run at 50~MHz, the same clock frequency as used in the SHMAC system.
+run at approximately 50~MHz, the same clock frequency as used in the SHMAC system.
 Because of this, and in order to preserve the readability of the code, it
 was decided not to attempt to improve the performance of the module.
 
