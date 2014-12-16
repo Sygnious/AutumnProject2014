@@ -1,17 +1,16 @@
 \chapter{Introduction}
 
 This report details an exploration of the possible benefits of accelerating
+<<<<<<< HEAD
 SHA-256 hashing using an accelerator module and a DMA\footnote{\textbf{D}irect \textbf{M}emory
-\textbf{A}ccess} Engine, for possible future
-inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous
-\textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
+\textbf{A}ccess} Engine, for possible future inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous \textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
 heterogeneous architecture consisting of different processing elements with
 optional accelerators. SHMAC is further described in section \ref{sec:shmac}.
 
 \section{Original Assignment Text}
 
 This project aims to develop an accelerator for a multi-core heterogeneous
-computing platform, with the aim of instantiating a hardware-based Bitcoin miner.
+computing platform, with the aim of eventually instantiating a complete hardware-based bitcoin miner.
 Bitcoin mining is, at its core, a SHA-256 hashing problem, so part of the
 assignment will be to make the hashing interface generic enough such that other
 cryptographic algorithms can be readily developed. Furthermore, various constraints
@@ -33,10 +32,7 @@ in order to produce a target hash value. There are more details about
 bitcoins and how they are created in section \ref{sec:bitcoins}.
 
 Bitcoin mining is a problem that there exists many different accelerators
-for, implemented both in software and hardware, in FPGAs and ASICs \cite{dark-silicon}.
-This gives a good opportunity for comparing the performance of our
-accelerator with other implementations.
-
+for, implemented both in software and hardware \cite{bespoke-silicon}.
 There is also an established performance metric for bitcoin mining hardware:
 hashes per second, often abbreviated H/s. This metric makes it easy
 to measure and compare the performance of our accelerator.
