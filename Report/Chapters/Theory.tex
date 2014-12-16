@@ -177,15 +177,15 @@ a sleep state while data is being transferred.
 
 In order for a hashing accelerator to be energy efficient and have better performance,
 it is important that a processor does not have to do memory transfers by itself. Therefore,
-a DMA module is being designed that can be used for transferring data to or from the hashing
+a DMA module is being designed that it can be used for transferring data to or from the hashing
 module, and later be extended to work as a general DMA in the SHMAC architecture.
 
 \subsection{The Purpose of DMA}
 
-Without a DMA device, the CPU must do all data requested data transfers.
-Processors would either have to rely on polling or interrupts
-In polling, the processor checks the peripherals for requests, and in most cases the are no requests.
-By using interrupts, one would spare the processor the inefficient amount of work done by polling, by letting interrupt signals into the CPU alert it for possible requests.
+Without a DMA device, the CPU must do all requested data transfers.
+Processors would either have to rely on polling or interrupts.
+In polling, the processor checks the peripherals for possible requests, and in most cases the are none.
+By using interrupts, one would spare the processor the inefficient amount of work done by polling, by letting interrupt signals to the to CPU alert it for possible requests.
 Nevertheless, in both cases the CPU still is responsible for data transfer itself. \cite{computer-construction}.
 
 % Devices do not directly ask the CPU to transfer data for them, they usually cause
@@ -198,20 +198,21 @@ Nevertheless, in both cases the CPU still is responsible for data transfer itsel
 % - T
 
 Direct Memory Access was developed in order to relieve the CPU of this work.
-When a transfer request has been identified, the DMA module is activated by the CPU and provided with the necessary data for the task.
+When a transfer request has been identified, the DMA module is activated by the CPU and provided with the necessary details for the task.
 While the DMA transfers the data, the CPU is free to work on other tasks, or to go to idle mode.
 %When done with the transfer, the DMA module signals the CPU, and the CPU will handle the \todo{Hmmmm....}remaining work such as notifying requesting peripherals. 
-How a DMA engine should be implemented depends on the system environment. \cite{computer-construction}
+%How a DMA engine should be implemented depends on the system environment. 
+\cite{computer-construction}
 
 DMA was also designed to perform data transfers with less overhead than on a CPU \cite{encyclopedia}
-A CPU is made for general-purpose work, and though the overheads depend on the CPU type, they include at least decrementing index and performing branching.
-\todo{Meh...}A DMA module on the other hand is specifically designed for data transfers. 
+A CPU is made for general-purpose work, and though the overheads depend on the CPU type, they include at least decrementing index and branching.
+A DMA module on the other hand is specifically designed for handling data transfers as efficient as possible. 
 %\todo{Concider removal}This can be avoided in a DMA module, as its \todo{This sounds cliche} hardware can be specifically designed to calculate addresses and counting down.
 
 \subsection{Basic Requirements for DMA}
-For data transfer, the minimum knowledge required is the address (source and destination), data register and a word counter \cite{encyclopedia}.
+For data transfer, the minimum knowledge required is the address (source and destination), a data register for buffering and a word counter \cite{encyclopedia}.
 A DMA module will require these to perform a data transfer.
-Any other features may improve the DMA module in terms of additional functions, integration with the system, and efficiency, but without the these basic needs it cannot perform data transfer.
+Any other features may improve the DMA module in terms of additional functions, integration with the system, and efficiency, but these basic requirements must be fulfilled to enable data transfers.
 
 % \subsection{DMA Module Functionality}
 % \todo{Documentation, documentation, documentation!}

@@ -1,7 +1,8 @@
 \chapter{Introduction}
 
 This report details an exploration of the possible benefits of accelerating
-SHA-256 hashing using an accelerator module and a DMA, for possible future
+SHA-256 hashing using an accelerator module and a DMA\footnote{\textbf{D}irect \textbf{M}emory
+\textbf{A}ccess} Engine, for possible future
 inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous
 \textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
 heterogeneous architecture consisting of different processing elements with
@@ -55,7 +56,7 @@ Other parts of the processor can then offload hashing operations to the
 accelerator tiles or the accelerated processor elements and continue
 working on other tasks or simply shut down, saving energy.
 
-Using a DMA\footnote{\textbf{D}irect \textbf{M}emory \textbf{A}ccess} module can allow further
+Using a DMA module can allow further
 power savings, as the processor does not have to do data transfer to
 and from the hashing accelerator by itself and can spend its time
 in a low-power sleep state instead.
