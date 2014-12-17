@@ -372,7 +372,7 @@ Figure \ref{fig:DMASHMAC3} shows an implementation where the DMA module has been
 In this implementation, the CPU sends a transfer request to the DMA on the destination tile.
 As soon as the request reaches the DMA module on MEM2, it will generate load requests to MEM1.
 As soon as data arrives, the DMA module will store the data in the destination addresses, and then signal the requesting CPU when the task is done.
-The distance between MEM1 and MEM2 is kept as short as possible, and the DMA module keeps the transfer safe since it knows when the task is complete before signalling the CPU.
+The distance between MEM1 and MEM2 is kept as short as possible, and the DMA module keeps the transfer safe since it knows when the task is complete before signaling the CPU.
 A drawback is that by implementing the DMA module directly on the memory tile, there will potentially be less room for the memory itself.
 
 The DMA module and the entire transfer operation will also be more complex, since location now matters.
