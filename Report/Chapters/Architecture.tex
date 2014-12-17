@@ -64,7 +64,7 @@ It is assumed that all data is transferred sequentially.
 This is especially important when it comes to future integration into the SHMAC system, because of the XY routing that the system uses.
 However, such an assumption also significantly simplifies the design of the DMA for use in shared-bus systems.
 
-Virtual memory and cache coherency are assumed to be handled outside the \todo{and therefore not in the project. Mention?} DMA module.
+Any issues regarding virtual memory and cache coherency are assumed to be handled outside the DMA module.
 
 %\subsection{Design requirements}
 \subsection{Chosen functionality in design}
@@ -73,13 +73,15 @@ It was decided on a couple of requirements for the DMA implementation.
 
 \begin{description}
 	\item[Use block-to-block transfers.] This is a minimum requirement for being
-	able to transfer any amount of data from location A to B.
+	able to transfer any amount of data from locations A to B.
 	\item[Two channels.] This allows the DMA to have two separate transfers going
 	at the same time.
 	The number of channels is inspired by the Adapteva Epiphany \cite{epiphany}, where every DMA module has two generic channel each.
 	With a high number of DMA modules, a high number of channels in each DMA module is not necessary.
-	\todo{This was actually not a requirement, and I think of describing it in State Machine. Consider removal}\item[Automatic channel allocation.] Channel allocation is done in hardware,
+	\item[Automatic channel allocation.] Channel allocation is done in hardware,
 	saving the CPU from the overhead of allocating and managing channels in software.
+	\item[Buffer containing multiple requests] Inspired by the Cell multiprocessor.
+	If more advanced versions of the DMA module, implemented in SHMAC, is to be able to handle multiple requests and of different types, issued by more than one source, then a buffer to receive and queue these requests is useful.
 	% I removed component-based implementation, because _every_ hardware design is component based. -K.
 	% 
 	% Yeah.... that makes sense. You should have taken TFE4140 last spring, not every student though of component based design, as they threw together a lot of code at top-level :-P
@@ -87,19 +89,19 @@ It was decided on a couple of requirements for the DMA implementation.
 
 \subsection{DMA Architecture}
 
-The DMA module consists of several main components: a FIFO buffer that contains transfer
-requests from the CPU, a main controller that processes the requests, and two channels
-where the memory transfers are executed. The two channels work on independent transfer
-tasks. An arbiter is used to control access to the bus interface for the two channels.
+The DMA module consists of several main components: a FIFO buffer that contains transfer requests from the CPU, a main controller that processes the requests and delegate them to the channels, and two channels where the memory transfers are executed.
+The two channels work on independent transfer tasks.
+An arbiter is used to control access to the bus interface for the two channels and the DMA Controller, with interrupt signals from the DMA Controller having highest priority, followed by storing commands and then loading commands.
+Another FIFO buffer is used to receive and queue loaded data.
+The loaded data is compared with the requested data from the channels by checking if their addresses match. 
 An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView2}.
-\todo{CNTR = counter --- CTRL = controller, please fix the figure}
 The overview provided in this chapter is simplified.
-For more details, see appendix \todo{Yep!} INSERT REF HERE, FIND OUT HOW TO DO SEC-LABEL
+For more details, see appendix \ref{app:DMA-arch}.
 
 \begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/TopViewFinalSimple2}
-    \caption{DMA module overview}
+    \caption{DMA module overview. }
     \label{fig:DMATopView2}
 \end{figure}
 
@@ -107,7 +109,6 @@ For more details, see appendix \todo{Yep!} INSERT REF HERE, FIND OUT HOW TO DO S
 The role of the main controller is to process incoming transfer requests, allocate and activate
 channels that are free to execute requests, monitor the channels, and send out an interrupt signal
 when a transfer is completed.
-
 The controller is implemented as a state machine, shown in figure \ref{fig:DMAControllerStateMachineSimple2}.
 
 \begin{figure}[htb]
@@ -120,37 +121,29 @@ The controller is implemented as a state machine, shown in figure \ref{fig:DMACo
 % IMPORTANT: Before you start talking about being too detailed, Kristian, my group got slaugthered in Computer Architecture project (TDT4260) for showing figures in result section without explaining them in the text. Do not count on figures to be self-explanatory. 
 Four states are used: IDLE; PROCESSING, WAIT and INTERRUPT.
 Whenever there is no activity and no incoming tranfer request, the state is IDLE.
-When activating a new channel for a requested transfer, the state is PROCESSING. There must be a request to handle, and at least a free channel to jump to this state from any other state.
+When activating a new channel for a requested transfer, the state is PROCESSING. 
+There must be a request to handle, and at least a free channel to jump to this state from any other state.
 When at least one channel is active, the state is WAIT as long as no more channels can be activated (either due to no more requests or all channels already being active).
 When sending out interrupt signal, the state is INTERRUPT.
 
 \subsubsection{Channels}
 Each channel is split into two parts: a part that is responsible for sending out load
-commands, and a storing part that issues a store commands. These ``subchannels''
-are called the load channel and store channel, respectively.
-The load channel will send out requests for loading data as long as its counter indicates that there is more data to be loaded. The store channel will request stores only when the loaded data is ready in the Data FIFO buffer.
-Each of these contains registers for calculating source addresses, destination addresses and for counters.
-\todo{Perhaps add an overview picture of channels here}
-
-\subsubsection{FIFO buffers}
-Two FIFO (First-In-First-Out) buffers are used in storing incoming transfer requests for the DMA Controller, and for storing incoming data loaded by the channels.
-The choice in using FIFO buffers are to enable the DMA module to be implemented in systems where multiple requests or multiple datas may arrive before any is handled.
-
-\subsubsection{Arbiter}
-The arbiter arbitrates between the channels and the DMA Controller.
-Whenever any channel or the Controller request to send through data (addresses for loading/storing, data for storing or interrupt details), the arbiter must select one of these requests.
-The request will be acknowledged, and the data sent through.
-Interrupt requests have highest priority, followed by storing requests and then loading requests.
-The requesting DMA Controller or channel is updated when acknowledged (either ending INTERRUPT state, or decrementing a channel counter).
-
-\subsubsection{Comparator}
-This is simple combinatorics, used to compare expected data from all store channels with next ready data.
-Whenever there is a match, the correct store channel is notified, so that it can request storing the data with the destination address calculated from the channel.
+commands, and a storing part that issues store commands when associated data has arrived. 
+These ``subchannels'' are called the load channel and store channel, respectively.
+They are not to be confused with channels 0 and 1 that are shown in figure \ref{fig:DMATopView2}.
+Both channels have a load channel and a store channel each.
 
 \subsubsection{Bus interaction system}
-In order for the DMA module to be as general as possible, it contains only a generic
+\todo{Kristian: Is master interface and slave interface covered well enough in the appendix?}In order for the DMA module to be as general as possible, it contains only a generic
 interface for communicating with a bus system. An adapter is then used to connect
 the module to the bus system. This makes it possible to connect the DMA module to
 different kinds of busses by simply writing an adapter for the desired system.
 
+\subsubsection{Running the DMA Module}
+\todo{Kristian: Jeg husker Yaman etterlyste dette. Finnes på 3.1.2. fra hans første tilbakemelding. Så langt jeg vet har du bedre oversikt på denne enn jeg}
+TODO:
+Yaman skrev dette på 3.1.2. på første tilbakemelding:
 
+"consider adding a small section describing what a DMA transfer looks like end-to-end, e.g how the CPU sets up the transfer, how DMA executes it and the CPU gets notified. 
+
+also make sure to underline that the way transfer requests are made is different then the traditional memory-mapped control registers with channel allocation completely managed in software."

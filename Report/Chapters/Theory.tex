@@ -232,11 +232,11 @@ There are three operation modes defined for how the DMA will interact with the i
 
     \item[Cycle stealing mode.] 
     The DMA requests the bus as in burst mode, but relents control of the bus after transferring
-    each byte of data. It will then re-request access to the bus for each transmission.
+    each byte or word of data. It will then re-request access to the bus for each transmission.
     In this way, the CPU and other peripherals can get earlier access to the bus if they need to. \cite{encyclopedia}
 
     \item[Transparent mode.] 
-    The DMA monitors the bus and transfers data only when the CPU or other modules are not performing operations that requires the bus.
+    The DMA monitors the bus and transfers data only when the CPU or other peripherals are not performing operations that requires the bus.
     This is the slowest mode for the DMA itself, but also the one that allows the least slowdown for the CPU. \cite{dma-lecture}
 \end{description}
 
@@ -247,7 +247,7 @@ Having transfers be as quick as possible, like in the burst mode, will make DMA 
 
 A lower priority scheme will make data transfers go faster for other modules, but at
 the same time, DMA transfers will be slower. Deciding the priority of a DMA transfer,
-however, will be up to the routers in the network, \todo{True, but should this not be stated in the chapter where we explain our chosen designs?} and is therefore outside the scope of this project.
+however, will be up to the routers in the network, and is therefore outside the scope of this project.
 
 \subsection{Transfer types}
 Transfer types describes how the source and destination addresses are used in the transfer. \cite{microchip54}
@@ -265,7 +265,6 @@ Some commonly used options are:
     \item[Block-to-block transfers.]
     Both source and destination addresses increment for each transfer.
     This is the scheme where entire blocks of data is transferred during a single operation.
-    \todo{Perhaps mention this as a requirement?}
     \item[Block-to-fixed transfers.]
     The source address increments, while the destination address remains the same.
     This is useful when, for instance, transferring data \emph{into} the buffer of a
@@ -278,8 +277,8 @@ Some commonly used options are:
 A DMA channel is defined as an interface with own sets of registers. \cite{DMAOxford}
 Channels can be programmed to interface for selected peripherals in the system.
 A channel is responsible for handling a requested data transfer, as it contains its own set of registers, used for controlling the operation and handling transfer addresses.
-The \todo{Um... how does one define "appropriate"? Consider removal of that word} appropriate number of channels depends on the system.
-Microchip PIC24F can have as many as 16 channels \cite{microchip54}, while the Adapteva Epiphany \cite{epiphany} has 2 generic channel for each DMA module.
+The appropriate number of channels varies with what system the DMA engine is made for.
+Microchip PIC24F can have as many as 16 channels \cite{microchip54}, while the Adapteva Epiphany \cite{epiphany} has 2 generic channels for each DMA module.
 
 %\subsection{System and Data Registers}
 %A DMA requires minimum a buffer for storing transfering data, as well as registers for load addresses and store addresses.
@@ -299,10 +298,10 @@ The DMA module used in the same system must follow the same type addressing.
 A generic DMA module made for more than one system should offer the choice between word addressing or byte addressing, as part of the input configuration.
 
 \subsection{DMA Integration Considerations regarding SHMAC}
-\todo{Documentation, documentation, documentation... uhm... how do you document your separate ideas for the options?}
-
+\label{sec:DMA-SHMAC}
 If the DMA module is to be integrated with SHMAC, there are some considerations that needs to be addressed.
-The DMA module should be adapted to work as efficient as possible with SHMAC, and at the same time, it should also be possible to todo{Meh... sounds stupid. It's efficiency vs. generic that I'm trying to address} use it everywhere. 
+The DMA module should be adapted to work as efficient as possible with SHMAC, and at the same time it should also be possible to use it generically in the system.
+That is to say, it should be possible to integrate it with any tile or at any location in the system.
 A DMA module may be implemented as a separate shared DMA Controller tile in SHMAC, as seen in figure \ref{fig:DMATile}, or as an accelerator on an exisiting tile, for instance in a CPU tile, as seen in figure \ref{fig:DMAAccelerator}.
 
 \begin{figure}[h!]
@@ -321,17 +320,17 @@ A DMA module may be implemented as a separate shared DMA Controller tile in SHMA
 
 There are different reasons for and against each option:
 \begin{itemize}
-    \item A full tile gives the benefit of having a full tile for the DMA implementation.
+    \item A full tile gives the benefit of having the entire tile for the DMA implementation.
     This is useful for complex implementations that require much space.
-    On the other hand, the smaller and more simple implementation, the less benefit of the extra space.
+    On the other hand, the smaller and more simple the implementation is, the less benefit of the extra space.
     \item The DMA Controller may also be implemented as an acceleratoron an already designed tile, such as a CPU, or a scratchpad memory.
-    Since a entire tile can be partially powered down, a DMA module may very well be implemented without any significant cost in terms of power usage.
+    Since a tile can be partially powered down, the DMA module does not rely on it's assosicated tile to be fully powered up, and may very well be implemented without any significant cost in terms of power usage.
     In fact, a DMA module may work as the only active part of a tile as well.
     A tile with a DMA module can also use the DMA to transfer data between internal modules on the tile.
-    However, this also means the DMA has to share the internal shared bus network with other modules.
+    However, this also means the DMA has to share the internal shared bus network with other modules on the tile.
 \end{itemize}
 
-For a basic implementation of a DMA in SHMAC, all that is needed for the DMA module to work is that it can transfer data from one address to another.
+For a basic implementation of a DMA in SHMAC, all that is needed for the DMA module to function properly is that it can transfer data from one address to another.
 It does not need to know where in the system it is, and what route the data must take from the load address to the store address.
 Figure \ref{fig:DMASHMAC1} shows an example where the DMA is implemented on a seperate tile.
 
@@ -342,7 +341,7 @@ Figure \ref{fig:DMASHMAC1} shows an example where the DMA is implemented on a se
     \label{fig:DMASHMAC1}
 \end{figure}
  
-As can be seen in the figure, the DMA tile recieves a request from its neighbouring CPU tile, and transfers data  from tile MEM1 to tile MEM2.
+As can be seen in the figure, the DMA tile receives a request from its neighbouring CPU tile, and transfers data from tile MEM1 to tile MEM2.
 This would also work the same way if the DMA module was implemented on the CPU tile as an accelerator instead.
 While this completes the basic goal of moving data on behalf of the CPU tile, it does not know or care where in the SHMAC system it is.
 If two memory tiles are close to each other, while the active DMA tile is far away (for instance on the other side of the entire SHMAC board), the data would have to travel unnecessarily far to reach the goal, and the operation will slow down.
@@ -357,7 +356,7 @@ If two memory tiles are close to each other, while the active DMA tile is far aw
 Figure \ref{fig:DMASHMAC2} shows an implementation where the DMA tile sets up a transfer between MEM1 and MEM2, by tricking MEM1 to believe that the request source is MEM2, not the DMA module.
 This could be done by sending a request signal through MEM2 to MEM1 with packet info claiming that the requestor is MEM2.
 For this to work, both MEM1 and MEM2 need the sufficient hardware to perform load and store operations themselves.
-This way, the distance is as short as possible, but how does the DMA tile know when the transfer is done, considering that it is not control the transfer itself?
+This way, the distance is as short as possible, but how does the DMA tile know when the transfer is done, considering that it is not in control the transfer itself?
 It could ignore this part of the task, and signal the CPU that the transfer is complete as soon as the tricking request has been sent out, but depending on the storing tile (a memory tile, or another accelerator tile), the CPU will risk loading old data that has not yet been overwritten, should it load from the ''wrong'' address before new data has arrived.
 Alternatively, the DMA module may be implemented with polling, so that it polls the MEM2 tile to see when the data transfer is complete.
 This leads to additional complexity in implementing the DMA.
@@ -380,8 +379,10 @@ The DMA module and the entire transfer operation will also be more complex, sinc
 The DMA Controller must know where its own tile is located in the SHMAC system, before either passing on the request to the DMA Controller on the correct tile.
 Alternatively the requesting CPU itself must know where the correct DMA module is (either by checking a look-up table, or deducing it from the destination address).
 
-This alternative is more complex than the other two discussed, but if successfully implemented, it will save transfer time by making the distance between source and destination as short as possible, and the local DMA Controller on the receiving tile has full control of wheter the transfer is done or not.
+This alternative is more complex than the other two discussed, but if successfully implemented, it will save transfer time by making the distance between source and destination as short as possible, and the local DMA Controller on the receiving tile has full control of whether the transfer is done or not.
 This makes this alternative likely the one with best performance, and also most efficient if the distance it saves makes up for the more complex hardware required.
+
+Integrating a DMA module on SHMAC is not within the scope of this project, but the DMA module should be designed with this in mind.
 
 %In the first case, the DMA module must be implemented with knowledge of its own position, and with the ability to pass on requests to the correct module.
 %This itself increases the complexity of the module.\todo{But also add favorable reasons?} 
@@ -394,54 +395,25 @@ This makes this alternative likely the one with best performance, and also most 
 
 When implementing a DMA module, there are issues regarding its cooperation with the system that must be handled.
 Among these are cache coherency and virtual memory.
-These will be outside the scope of this project, but are relevant if a DMA module is to be implemented on SHMAC.
+These will be outside the scope of this project, but may be relevant if a DMA module is to be implemented on SHMAC.
 
 \subsubsection{Cache coherency}
-Data that the DMA module is tranfering may also exist on the cache of a CPU \cite[p~594-595]{computer-construction}.
+Data that the DMA module is tranfering may also exist on the cache of a CPU \cite{computer-construction}.
 The DMA Controller only sees the data in the memory, and if the memory is overwritten, there will be different values in the cache and in the memory.
 This is the cache coherency problem.
-A way to deal with this is to invalidate the entry in the cache, and have the CPU reload data from the memory.
-% SHMAC currently avoids the coherency problem for multiple cores by having shared data in uncachable memory, but since this will reduce performance due to the memory-gap, it is likely that SHMAC in the future will implement a different solution on this.
+One way to deal with this is to invalidate the entry in the cache, and have the CPU reload data from the memory.
 
 \subsubsection{Virtual memory}
 If the system has virtual memory, a problem is whether the DMA module should work with virtual or physical addresses 
-The drawback with virtual addressing every address must be translated to physical addresses.
+The drawback with virtual addressing is that every address must be translated to physical addresses.
 But the problem with physical addresses is that the transfer cannot easily cross a page boundry.
 Contiguous data in the physical space is not necessarily contiguous in virtual memory.
 When using physical addressing, DMA transfers must be constrained within same memory page. \cite{computer-construction}.
 
-\todo{Consider moving this entire paragraph to "future work"}
 A possible solution may be to make the DMA work on virtual addresses, by providing the DMA module with with a small number of map entries that provide virtual-to-physical mapping for a transfer.
 Another solution is for the operating system to break the DMA transfer into a series of transfers, each confined within a single physical page.
 The transfers are then chained together and handled by an intelligent DMA unit that executes the series of transfers. 
 For any of the solutions, the operating system must cooperate by not remapping the pages with a DMA transfer involving that page is in progress.
 
 SHMAC does currently not implement virtual memory, but it is listed as a future task \cite{shmac-plan}.
-Therefore, this will be a future issue that needs to be solved if both DMA and virtual memory are to be used in SHMAC. 
-
-\subsubsection{Multiple DMA requests operating on the same data field}
-\todo{YUP!}
-Yaman mentioned this. Write something sensible if time, or just wipe this out.
-
-% - Cache coherency is not an issue when there is no cache :-) -K.
-% 
-% - Disagree: There are caches on SHMAC. Reread the planning paper!
-
-
-
-% - Virtual memory is handled internally in the processors, the DMA operates only on physical addresses unless an IOMMU is used. -K.
-%
-% - Disagree. It is still a problem because virtual addresses and it's physical versions may not be aligned in memory. See what I have written.
-
-%\subsection{Other options to consider}
-%What is the data size? 
-%Byte or bit? 
-%Who can interrupt? 
-%What type of interruptions may the DMA send out? 
-%Multiple jobs?
-%Generic DMA or specialized DMAs?
-%
-% - Commented out for the first draft. -K.
-%
-% - No time to write on this now 
-
+Therefore, this may be a future issue that needs to be solved if both DMA and virtual memory are to be used in SHMAC. 

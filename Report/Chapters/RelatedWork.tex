@@ -30,10 +30,10 @@ execution, using block RAM for the SHA constants and using specific types of
 adders or counters.
 
 \section{DMA}
-DMA modules are commonly found in systems-on-chip. Two such systems are the
+DMA modules are commonly found in systems-on-chip. Three such systems are the
 PIC24F family of microcontrollers from Microchip, representing a common
 single-core, low-power microcontroller, and the Adapteva Epiphany, a more
-exotic multicore architecture.
+exotic multicore architecture, and the Cell processor, which relies on complex DMA transfers between its cores.
 
 \subsection{Microchip PIC24F device family}
 Microchip Inc. is a provider of microcontrollers and analog semiconductors \cite{microchip1}.
@@ -47,6 +47,7 @@ All peripherals that request data transfers are connected to this bus.
 The DMA module is controlled by a number of registers.
 For the module itself, there are registers for the engine control, for upper and lower address limit, and there is the data buffer.
 For each channel implemented, there are registers for channel control, channel interrupt control, registers for source and destination, and there is the transaction counter. 
+All channels share the same data buffer for transfers.
 \cite{microchip54}.
 
 
@@ -60,11 +61,10 @@ The Epiphany architecture was designed for good performance across a broad range
 Examples are image processing, communication, sensor signal processing, encryption and compression.
 The 2D eMesh NOC that is used in this system handles traffic patterns in high-throughput real-time applications efficiently.
 
-\todo{Hmmm.... does this sentence require that eMesh is better described? Then might as well remove}
 The DMA engine is custom designed for the eMesh fabric, and operates at the same speed as the eMesh, so that it generates a double word transaction on every clock cycle.
 Every node in the Epiphany has a DMA engine each.
 
-The main features of the DMA Engine are: \todo{Consider wether this listing REALLY is necessary} 
+The main features of the DMA Engine are: 
 \begin{itemize}
     \item Two independent channels per processor node
     \item Separate specification of source/destination address configuration per descriptor and channel
@@ -89,7 +89,7 @@ Channel 0 has higher priority than channel 1.
 
 \subsection{Cell Processor}
 Kistler, Perrone and Petrini takes a look at the Cell Multiprocessor, developed by IBM, Sony and Toshiba, in their paper "Cell Communication Network: Built for Speed" \cite{cell}.
-As multicores have become a major trend in computer architecture, the authors stress the need for on-chip networks that provide high performance in latency and bandwidth, if the computational power of the many anvailable processing units are to be realized.
+As multicores have become a major trend in computer architecture, the authors stress the need for on-chip networks that provide high performance in latency and bandwidth, if the computational power of the many anvailable processing units are to be fully realized.
 In this paper, the authors describe the architecture of the Cell Multiprocessor, and their experiments where they test the performance of the communication network.
 One of the main components involved in the communication is the DMA engine.
 
@@ -143,6 +143,5 @@ These are the steps of a DMA flow, as seen in figure \ref{fig:CellDMA}:
     The SPU is notified when all bus requests are completed, and the command is removed from the queue. 
 \end{itemize}
 
-
-\todo{Mention latency?}
-When Kistler, Perrone and Petrini tested the performance of the communication system, they found that when using only DMA \todo{Reread and check if there were only one or more modules possible per SPE} modules from only one SPE, the highest possible bandwidth for puts and gets to local store, and puts to main memory were 22.5 GBytes/s, and gets from main memory were 15 GBytes/s, when using blocking issues.
+When Kistler, Perrone and Petrini tested the performance of the communication system, they found that when using DMA from only one SPE, the highest possible bandwith when using only one SPE was measured up to 25 GB/s if message size was large enough, and latency below 100 ns if packet size was small enough.
+The results were dependent on type, as gets or sets towards main memory or local store, and how many commands they allowed to be executed at the same time before blocking.
