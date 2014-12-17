@@ -168,28 +168,34 @@ These are:
 
 \subsection{DMA Request FIFO adapter}
 
-The DMA Controller is designed to prosess input data that arrives together with the request signal, but the FIFO design that is used to store requests is not fully compatible with this setting.
-The reason they are not compatible can be explained by using an example where only one request has been stored into the FIFO buffer.
-When content is stored, the empty-signal from the FIFO buffer is set from '1' to '0'.
-This is the only signal that is depenendant on whether there is content or not, and should thus be used as request signal.
-However, when request is stored in the FIFO buffer, the new request is not automatically set as output.
-For this to be done, the request must be popped.
-When popped, the request data is set to the output, and the DMA controller receives it.
-But since there are no other requests stored and waiting to be processed, the FIFO buffer will count as empty, and the empty signal is set to '1' (negating any request signal into the controller).
-In summary, the problem is this: Either the controller will receive old data from a previous request with when new request, or there will be no request signal with the new data.
-This is the case when there are only 1 request.
-For a series of requests, the first request signal will be coupled with old data, while the final request will not be processed.
-A further problem is to avoid having the controller popping wrong at in the FIFO buffer.
-When a pop occurs, the FIFO buffer changes output by one \todo{sounds stupid, improve} storing cell, and it is possible to do a pop, even if the empty signal is '1'.
-The empty signal is based on whether the FIFO's top and bottom have the same index, with pop as last command, and popping moves the bottom index.
-Popping wrong will therefore create a wrong empty signal, and when processing the final request, the DMA Controller must not pop wrongly.
+The DMA controller is designed to process input data that arrives together with the request signal, but the FIFO design that is used to queue requests is not fully compatible with this setting.
+The suitable signal from the FIFO buffer to the DMA controller is the empty-signal, as NOT empty can be used as req-signal.
+The reqUpdate-signal from the DMA controller can be used to pop new data.
+However, the data must be popped before it can be read, causing a cycle delay between the received req-signal and the associated data.
+In addition, the first arrived data has to be popped without relying on the reqUpdate-signal, since the first NOT-empty must arrive in the controller together with the data.
+And finally, when the last data is read and the buffer is empty, the controller must not pop any more content, or it will cause error in the buffer.
+The reqUpdate signal must be ignored somehow.
+   
+%The reason they are not compatible can be explained by using an example where only one request has been stored into the FIFO buffer.
+%When content is stored, the empty-signal from the FIFO buffer is set from '1' to '0'.
+%This is the only signal that is depenendant on whether there is content or not, and should thus be used as request signal.
+%However, when request is stored in the FIFO buffer, the new request is not automatically set as output.
+%For this to be done, the request must be popped.
+%When popped, the request data is set to the output, and the DMA controller receives it.
+%But since there are no other requests stored and waiting to be processed, the FIFO buffer will count as empty, and the empty signal is set to '1' (negating any request signal into the controller).
+%In summary, the problem is this: Either the controller will receive old data from a previous request with when new request, or there will be no request signal with the new data.
+%This is the case when there are only 1 request.
+%For a series of requests, the first request signal will be coupled with old data, while the final request will not be processed.
+%A further problem is to avoid having the controller popping wrong at in the FIFO buffer.
+%When a pop occurs, the FIFO buffer changes output by one \todo{sounds stupid, improve} storing cell, and it is possible to do a pop, even if the empty signal is '1'.
+%The empty signal is based on whether the FIFO's top and bottom have the same index, with pop as last command, and popping moves the bottom index.
+%Popping wrong will therefore create a wrong empty signal, and when processing the final request, the DMA Controller must not pop wrongly.
 
-\par
-The challenge is to make sure that request signals arrives at the same time with the corresponding data, and to make sure that incorrect pops to not occur.
+The challenge is to make sure that req-signals to the DMA controller arrive at the same time with the corresponding data, and to make sure that incorrect pops to not occur.
 Here is where the adapter comes in.
 The adapter is designed to interface between the request FIFO Buffer, and the DMA Controller. 
-It delays the request signals from the FIFO buffer by one clock cycles, and sends out pop-signals at correct time.
-Figure \ref{fig:adapter} shows how the adapter is built up, and also how the adapter, the FIFO Buffer and the DMA controller are all connected to each other.
+It delays the request signals from the FIFO buffer by one clock cycle, and sends out pop-signals at correct time.
+Figure \ref{fig:adapter} shows how the adapter is built, and also how the adapter, the FIFO Buffer and the DMA controller are all connected to each other.
 
 
 \begin{figure}[h!]
@@ -199,20 +205,23 @@ Figure \ref{fig:adapter} shows how the adapter is built up, and also how the ada
     \label{fig:adapter}
 \end{figure}
 
-The adapter has one register for storing request signals, but otherwise consists of combinatorics.
-When a request is stored in the FIFO buffer, and the empty signal is sent in and negated, if the current value of the request register is 0, then the request is the first to arrive, either alone or in a series of requests.
-The adapter pops the FIFO buffer, and the request data is stored in the register (NOT empty AND NOT request).
-The register sends out the request the next cycle, which arrives in the DMA Controller together with the newly popped data.
-As long as there are more in the FIFO buffer, the negated empty signals combined with the reqUpdate-signal from the DMA controller is used to pop for new requests (NOT empty AND (REQUEST AND reqUpdate).
-ReqUpdate is set immediatly inside the DMA Controller whenever it receives a request and has a free channel.
-When a request is processed, the next request details is popped at the same, so that they may be ready for input reading.
-Using a register, any request signals are delayed with at least one cycle, so that output details from the FIFO buffer is popped and reaches the DMA Controller together with the corresponding request signal.
-There are, however, some more issues to be aware of:
-When the final data has been popped, the negated empty-signal becomes '0', but the expected case will be that while final data is ready to be read, there are no free channels to process the final request for a while.
-The request register must store the final request, without being overwritten by the empty-signal.
-This is done by using it's own value to update itself, until the next reqUpdate-signal is sent out, signaling that the DMA Controller has processed the final job.
-As long as there is no more requests, and the negated empty-signal is '0', the request register will be set to '0' as well when the reqUpdate signal is sent out.
-Notice also that as long as the negated empty-signal is '0', no pops will be made to the FIFO buffer either. 
+The adapter has one register for storing request signals, but consists otherwise of combinatorics.
+The NOT-empty signals are always delayed by a cycle, making sure they arrive together with the next corresponding data to the controller.
+If the register's value is '0', the first NOT empty-signal will cause the adapter itself to pop the buffer, and register changes value to '1'.
+As long as NOT-empty is active, the adapter pops whenever reqUpdate is active.
+When the buffer finally is empty, the next reqUpdate signal will simply set the register's value to '0'.
+%When a request is stored in the FIFO buffer, and the empty signal is sent in and negated, if the current value of the request register is 0, then the request is the first to arrive, either alone or in a series of requests.
+%The register sends out the request the next cycle, which arrives in the DMA Controller together with the newly popped data.
+%As long as there are more in the FIFO buffer, the negated empty signals combined with the reqUpdate-signal from the DMA controller is used to pop for new requests (NOT empty AND (REQUEST AND reqUpdate).
+%ReqUpdate is set immediatly inside the DMA Controller whenever it receives a request and has a free channel.
+%When a request is processed, the next request details is popped at the same, so that they may be ready for input reading.
+%Using a register, any request signals are delayed with at least one cycle, so that output details from the FIFO buffer is popped and reaches the DMA Controller together with the corresponding request signal.
+%There are, however, some more issues to be aware of:
+%When the final data has been popped, the negated empty-signal becomes '0', but the expected case will be that while final data is ready to be read, there are no free channels to process the final request for a while.
+%The request register must store the final request, without being overwritten by the empty-signal.
+%This is done by using it's own value to update itself, until the next reqUpdate-signal is sent out, signaling that the DMA Controller has processed the final job.
+%As long as there is no more requests, and the negated empty-signal is '0', the request register will be set to '0' as well when the reqUpdate signal is sent out.
+%Notice also that as long as the negated empty-signal is '0', no pops will be made to the FIFO buffer either. 
 
 \subsection{Manual subtractor}
 One of the main components used inside both load channels and store channel is the manual subtractor.
@@ -307,7 +316,6 @@ If a counter has an incrementing value, there must be an extra register that con
 In order to utulize as few registers as possible for the task, the counter and offset value has been joined as one register, and the system counts down towards zero.
 This eliminates the need for any extra final count-register, since the counter can be checked for zero or non-zero values.
 This means also using the final load address and subtracting it with the offset-value from the counter, when calculating current address.
-\todo{Find a suitable place for this description}
 
 \subsection{Store channel}
 The store channel is responsible for generating storing requests, together with the correct data that has been loaded from a distinct memory address into the DMA module.
@@ -388,54 +396,49 @@ The implemented data buffer is a FIFO buffer.
 It is 64 bits wide, 32 bits containing the address from where the data is loaded, known as loadID, and 32 bits containing the data itself.
 
 \subsection{Interaction in the two-channel setup}
-The channels are set up in a sub-module of the DMA Module, called the TwoChannelSetUpBuffered.
+The channels are set up in what is called the TwoChannelSetUpBuffered module.
 This setup can be seen in figure \ref{fig:twoChannelSetup}.
-The figure shows how two channels 0 and 1 are combined in this submodule together with FIFO data buffer, a comparator, and an arbiter.
+The figure shows how two channels 0 and 1 are combined in this submodule together with the FIFO data buffer, a comparator, and an arbiter.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1.25\textwidth]{Figures/DMA/TwoChannelSetUpBuffered}
+    \includegraphics[width=1.1\textwidth]{Figures/DMA/TwoChannelSetUpBuffered}
     \caption{The two-channel setup, buffered version}
     \label{fig:twoChannelSetup}
 \end{figure}
 
-The choice of designing a submodule with the channels, was mainly to have a working environment where testing the interaction between the channels, arbiter and input buffer, were possible before having finished the DMA Main Controller.
+The reason behind this choice was to have a working environment where testing the interaction between the channels, arbiter and input buffer, were possible before having finished the DMA main controller.
 
 All inputs to the channels from the DMA Controller go through synchronous buffers.
-Originally, the setup were originally designed without buffers, but behavioral simulation showed that whenever a set-signal was received exactly at a clock tick together with new inputs, the previous counter value would be written into the counter registers in the channels.
+Originally, the setup was originally designed without buffers, but behavioral simulation showed that whenever a set-signal was received exactly at a clock tick together changed input values, the previous counter value would be written into the counter registers in the channels.
 The rest of the inputs to the channels were correctly written.
-The counters are the only registers which inputs must pass additional combinatorics, so apparently these values did not reach the counter registers in time with the set-signal.
+The inputs for the counters passes through some additional combinatorics before reaching the registers, so apparently these values did not reach the registers in time with the set-signal.
 Adding buffers for all input signals solved this problem, by giving all inputs to the channels an entire cycle to synchronize.
 The cost is an additional cycle in activating the channels.
 
-The DMA Main controller, which sends in these inputs, is also connected directly to the arbiter.
-Whenever the DMA Main Controller needs to send interrupt signals, this goes through the arbiter.
+The DMA main controller, which sends in these inputs, is also connected directly to the arbiter.
+Whenever the DMA main controller needs to send interrupt signals, this goes through the arbiter.
 
-Notice that each set\_buffered registers are also connected to the respecite active-signal that are sent back to the DMA Main controller.
+Notice that each setX\_buf registers are also connected to the active-signal of their corresponding channel that are sent back to the DMA Main controller.
 Even if buffering the inputs delays the channel activation by one cycle, the DMA Main controller should still receive the active-signal as early as possible.
 
-\todo{Remember, you have a design flaw to fix. Update figure and text when it is done}
 Popping data from the data buffer at the right time is also a challenge.
-Whenever a channel stores the lates data from the FIFO buffer, new data should be popped, but only if there is more.
+Whenever a channel stores the latest data from the FIFO buffer, new data should be popped, but only if there is more.
 If the buffer is empty, no more pops should be issued.
 Whenever new data arrives to an empty buffer, it must be popped first before any of the channels can read the ID.
 This is solved by implementing some combinatorics, and a register called popFirst.
 When new data arrives, there must be a cycle between the push and the pop.
 popFirst is set by combining the empty-signal with the push-signal, which are both active when the first data arrives, and popFirst will be used in popping the first data during the next cycle.
+Notice that either a store-ack signal must be active, or that there must be no data-rdy signal active.
+This is to avoid a potential deadlock due to data being overwritten too early.
+Simulation showed that if the last data was popped, but not sent due to block or interrupt, it would be overwritten if new data arrived in the FIFO buffer before the interrupt or block was over.
 Otherwise, if there is content in the buffer that is to be popped, it will be done so as long as the empty signal is low, and as long as any of the store ack-signals from the arbiter is active (meaning that data with storing address is sent through and out of the DMA Module).
 
 Whenever something is sent through the system, either a store request, load request, or interrupt, an additional signal StoreOutput, is sent.
-This is done by combining all ack\-signals into an OR gate, named StoreOutput.
-This is to be used as a separate signal to the system that handles outputs from the DMA Module, to signal that a new output is sent out.
-Suppose there is a loading request sent out to address 0.
-\todo{Probably first mention of command value 00, should find a place where the values 00, 01 and 11 are described}
-The command is then "00", and the address consists of 32 0's.
-The receiving output system would not know the difference between this load, and an inactive module (default are 0's).
-Using a separate signal solves this issue.
+This is done by combining all ack-signals into an OR gate, named StoreOutput.
+This is to be used as a separate signal to the system that handles outputs from the DMA module, to signal that a new output is sent out.
 
-\subsection{Tweaks in the system}
-\todo{Meh.... But mention in end of main report that these tweaks must be replaced with proper solution}
-The DMA module was designed for word addressing, while the system used to test the hashing module and the DMA module in this project uses byte-addressing.
+\subsection{Tweaks in the system}The DMA module was designed for word addressing, while the system used to test the hashing module and the DMA module in this project uses byte-addressing.
 The current design does not support both, and in order to both save time and adapt the DMA module to the test system, these changes were done:
 \begin{itemize}
     \item The DMA Controller multiplies the counter value with 4 before calculating FLA and FSA
@@ -446,7 +449,7 @@ The current design does not support both, and in order to both save time and ada
 \section{Verification and testing of DMA Module}
 
 %\section{Functional testing}
-The DMA Module is tested by first testing individual components, then their interaction with each other.
+The DMA module is tested by first testing individual components, then their interaction with each other.
 
 In the individual testing, the component receives different combinations of the inputs as the time passes.
 The test shows whether the component behaves as expected, based on the input.
@@ -460,7 +463,7 @@ Components that are tested individually are:
     \item \textbf{Store Channel}
 \end{itemize}
 
-In the interaction testing, also known as topview-testing, the components are tested for their interaction with each other.
+In the interaction testing the components are tested for their interaction with each other.
 Since the components have been tested individually, they are assumed at this point to be functional. 
 Internal values are thus ignored, also since the focus of the tests are to ensure that the interaction between the components are working as expected.
 The interaction tests are:
@@ -472,13 +475,7 @@ The interaction tests are:
     Data with ID is fed manually to the data buffer.
     The tests ensures that a load channel sends out number of requests according to count value, and that whenever data arrives, stores are issued and get priority above loads.
     Also tests if interrupts and blocks get highest priority, and that active signals are activated and deactivated correctly.
-    \todo{This is actually just saying that I didn't add separate counters here as I did in the topview test for the entire module}
     Correctness is ensured by reading the output values (mainly detailsoutput and dataOutput) from the two-channel setup.
-    \item[Two Channel setup, two requests -]
-    Second of two tests, this one activates both channels.
-    In addition to the first test, this one also ensures that loads from both channels alternates when both are active, and that correct channel identifies and stores the correct data that has been loaded.
-    When one channel is done, the other channel will have full access to the arbiter, and loads will no longer alternate.
-    Correctness is ensured by reading the output values. 
     \item[Two Channel setup, two requests -]
     Second of two tests, this one activates both channels.
     In addition to the first test, this one also ensures that loads from both channels alternates when both are active, and that correct channel identifies and stores the correct data that has been loaded.
@@ -490,14 +487,14 @@ The interaction tests are:
     For each load issued, a register receives the load address, and sends it back to the DMA Module with a push signal and data (since the data value is not important for this test, each value is incremented by 8).
     Thus there is a cycle delay from a load is issued to the data arrives to the DMA Module.
     In the real world, there will be far more cycles from a load is issued, until it's data arrives in the DMA Module.
-    And issuing multiple loads or not also depends on the system it is integrated with.
+    And whether issuing multiple loads or not is possible also depends on the system it is integrated with.
     There will be great difference between this project, where the DMA Module is connected to a single shared bus network, and to integrate it on SHMAC, where the main network is switched-media network.
     In this test, however, all data arrives quickly, as if using a bus and memory that is extremely fast.
-    One reason is to cut down the necessary waiting time in the test itself, and another is that the module is tested for near-maximum peak.
+    One reason is to simplify the test by reducing the necessary waiting time in the test itself, and another is that the module is tested for near-maximum peak.
     There are three tests in total: One with single request (only one channel active), one with two requests (both channels active) and one with four requests (test for waiting requests).
     Correctness is ensured by comparing the test counter values with expected number of loads, stores, interrupts issued, and number of blocks.
     
-    \todo{HHHHHHMMMMMMM!!!!!}A word of warning: It turns out in the tests that for each round of blocks, the block counter counts one block less than the number of cycles a block is active. It still turns out, when analysing the signals, that the module is inactive in correct number of cycles as long as the block signal is active, the block counter merely does not count for the first cycle during a block. Since this is considered a flaw with the test itself, and not with the DMA Module, the error is considered negligable. 
+    It turns out in the tests that for each round of blocks, the block counter counts one block less than the number of cycles a block is active. It still turns out, when analysing the signals, that the module is inactive in correct number of cycles as long as the block signal is active, the block counter merely does not count for the first cycle during a block. Since this is considered a flaw with the test itself and not with the DMA Module, the error is considered negligable. 
 \end{description}
 
 
