@@ -50,6 +50,10 @@ Part of the purpose with the design is to make the DMA module generic, so that i
 In order to make the design as generic as possible, a controller and an incoming request FIFO
 in case of multiple requests is therefore essential.
 
+\subsection{Correcting type of addressing: word or byte}
+In order to avoid problems related to word/byte-addressing, as was encountered in this project, the designer of the DMA module should first make check what type of addressing SHMAC uses, and adapt the DMA module if needed. 
+Alternatively, the DMA module could be expanded to do both, with addressing type configure in the request parameters.
+
 \subsection{Improving the Bus Network}
 Since the bus network has been determined to be the bottleneck of the system, different topologies
 can provide a less congested bus between memory or the hashing accelerator. Different topologies
