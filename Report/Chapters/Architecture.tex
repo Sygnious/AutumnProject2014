@@ -92,7 +92,7 @@ It was decided on a couple of requirements for the DMA implementation.
 
 The DMA module consists of several main components: a FIFO buffer that contains transfer requests from the CPU, a main controller that processes the requests and delegates them to the channels, and two channels where the memory transfers are executed.
 The two channels work on independent transfer tasks.
-An arbiter is used to control access to the bus interface for the two channels and the DMA Controller, with interrupt signals from the DMA controller having highest priority, followed by store commands and then load commands.
+An arbiter is used to control access to the bus interface for the two channels and the DMA controller, with interrupt signals from the DMA controller having highest priority, followed by store commands and then load commands.
 Another FIFO buffer is used to receive and queue loaded data.
 The loaded data is compared with the requested data from the channels by checking if their addresses match. 
 An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView2}. A more in-depth description
@@ -105,8 +105,8 @@ can be found in appendix \ref{app:DMA-arch}.
     \label{fig:DMATopView2}
 \end{figure}
 
-\subsubsection{Main Controller}
-The role of the main controller is to process incoming transfer requests, allocate and activate
+\subsubsection{DMA Controller}
+The role of the controller is to process incoming transfer requests, allocate and activate
 channels that are free to execute requests, monitor the channels, and send out an interrupt signal
 when a transfer is completed.
 The controller is implemented as a state machine, shown in figure \ref{fig:DMAControllerStateMachineSimple2}.
@@ -119,7 +119,7 @@ The controller is implemented as a state machine, shown in figure \ref{fig:DMACo
 \end{figure}
 
 % IMPORTANT: Before you start talking about being too detailed, Kristian, my group got slaugthered in Computer Architecture project (TDT4260) for showing figures in result section without explaining them in the text. Do not count on figures to be self-explanatory. 
-Four states are used: IDLE; PROCESSING, WAIT and INTERRUPT.
+Four states are used: IDLE, PROCESSING, WAIT and INTERRUPT.
 Whenever there is no activity and no incoming tranfer request, the state is IDLE.
 When activating a new channel for a requested transfer, the state is PROCESSING. 
 There must be a request to handle, and at least a free channel to jump to this state from any other state.
