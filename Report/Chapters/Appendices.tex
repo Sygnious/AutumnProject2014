@@ -5,9 +5,12 @@
 This appendix contains additional details about the DMA implementation, and serves to give a deeper understanding of how each component in the DMA works in details.
 Chapter 1 will describe every component in detail, while chapter 2 describes tests used to verify the DMA module.
 \section{DMA Architecture in details}
-This chapter aims to give the reader an insight into every detail of
+This chapter aims to give the reader an insight into every detail of the DMA Module.
+Every component is detailed with all inputs, outputs and their functions, as well as how they interact with each other.
+
+
 \subsection{Topview}
-Figure \ref{fig:TopViewFinalSimple2IO} shows the entire DMA Module, with its components, \todo{Describe briefly inputs and outputs} inputs and outputs.
+Figure \ref{fig:TopViewFinalSimple2IO} shows the entire DMA Module, with its components, and its inputs and outputs.
 
 
 \begin{figure}[h!]
@@ -18,7 +21,7 @@ Figure \ref{fig:TopViewFinalSimple2IO} shows the entire DMA Module, with its com
 \end{figure}
 
 \subsubsection{Components}
-These are the components that the DMA Module consists of:
+These are the components that the DMA module consists of:
 
 \begin{description}
     \item[DMA Controller -] 
@@ -26,7 +29,7 @@ These are the components that the DMA Module consists of:
     \item[Channels -] 
     A channel is capable of performing a requested transfer, by issuing loads and stores.
     The system currently implements two channels.
-    Each channel is split into two sub-modules, called "load channel" and "store channel"
+    Each channel is split into two sub-modules, called "load channel" and "store channel".
     \item[Arbiter -]
     Used to select next output: Interrupt, store or load command.     
     \item[FIFO Buffers -]
@@ -42,14 +45,13 @@ Inputs and outputs for the entire Topview are mainly grouped by the FIFO buffers
 \begin{description}
     \item[Request FIFO Buffer -] 
     The inputs are a control signal for storing in the FIFO buffer, and details on 96 bits: 32 for source address, 32 for destination address, and 32 for transfer details, including ID-number on the requesting peripheral and the count number. 
-    \todo{Meh...}Not all bits from the transfer details are currently in use.
     The output signal is a FIFO full-signal, signaling that the buffer is full.
     \item[Data FIFO Buffer -] 
     The inputs are a control signal for storing, and data details on 64 bits: 32 for address of origin, and 32 for the data itself.
     The output signal is a FIFO full-signal, signaling that the buffer is full.
     \item[Arbiter -]
-    The outputs that passes are a control signal to be used externally, and details on 66 bits: 2 first bits are used to identify the type of command, the rest are the details (interrupt, or load/store with address and data).
-    The input block-signal may be used by the external system to pause the DMA module from sending out any more data, in case the external system is saturated and must process the current output before receiving any more. 
+    The outputs that passes through the arbiter are a control signal to be used externally, and details on 66 bits: 2 first bits are used to identify the type of command, the rest are the details (interrupt, or load/store with address and data).
+    The input block-signal may be used by the external system to pause the DMA module from sending out any more data, if the external system is saturated and must process the current output before receiving any more. 
     The impact of this depends on the external system.
 \end{description}
 
@@ -79,9 +81,9 @@ The states used in the state machine are IDLE, PROCESSING, WAIT AND INTERRUPT
     \item[WAIT -]
     When both channels are active and there are no more room for new requests to be processed, or when there are no more requests to process while there are still channels active.
     \item [INTERRUPT -]
-    When a channel is finished with execution and no longer active, the DMA Main Controller will request the arbiter to send out interrupt request.
-    Until the arbiter acknowledges the request, the controller will remain in this state, and no new requests will be processed until done.
-    When acknowledged, the controller will send out an interrupt signal with necessary details, such as the ID of the requestor.  
+    When a channel is finished with execution and no longer active, the DMA Main Controller will request the arbiter to let it send out interrupt signal.
+    Until the arbiter acknowledges the request, the controller will remain in this state, and no new transfer requests will be processed until done.
+    When acknowledged, the controller will send out an interrupt signal with necessary details, including the ID of the requestor.  
 \end{description}
 
 \subsubsection{Inputs}
@@ -100,7 +102,8 @@ The DMA controller have the following inputs:
     The beginning 32-bit storing address
     \item[reqDetails -]
     32-bit details relevant for the transfer.
-    Contains count, which is used for both offset and counting down the execution to finish, and ID-number of the requestor, which is used in the interrupt signal.
+    Contains count (bits 32-21), which is used for both offset and counting down the execution to finish, and ID-number of the requestor (bits 20-13), which is used in the interrupt signal.
+    Bits 12-0 are currently not in use.
     \item[activeCh0 -]
     Monitoring signal from channel 0, signalizing that it is currently active.
     \item[activeCh1 -]
@@ -114,7 +117,7 @@ These are the following output signals from the DMA controller
 
 \begin{description}
     \item [reqUpdate -]
-    Signal to acknowledge the received data transfer request (req) and its details, so that next request may be received.
+    Signal to acknowledge the received data transfer request (req) and its details, so that next request may be sent.
     Used in facilitating pop-signals at the Request FIFO buffer.
     \item[FLAOut -]
     32-bit FLA (Final Load Address) output sent to channels.
@@ -131,10 +134,9 @@ These are the following output signals from the DMA controller
     \item[interruptReq -]
     Request signal to the arbiter for sending out interrupt
     \item[interruptDetails -]
-    34-bit interrupt details, sent out of the DMA Topmodule when the controller requests the arbiter for access, and is acknowledged.
-    Contains 2 bits to recognize interrupt with values are 11, and contains ID of the transfer requestor. 
-    These make up 7 bits. 
-    The other bits are currently not in use.
+    34-bit interrupt details, sent out of the DMA top module when the controller requests the arbiter for access, and is acknowledged.
+    Contains 2 bits to recognize interrupt with value "11", and contains ID (7 bits) of the transfer requestor.
+    Bits 24-0 are currently not in use.
 \end{description}
 
 \subsubsection{Internal registers and signals}
@@ -154,7 +156,7 @@ These are:
     Same as RequestID0, but for channel 1.
     \item[totalActive -]
     A 2-bit signal, which is the concatination of both the active signals from the channels.
-    The DMA Controller needs the active signals immediately when set-signals are sent out to function properly, yet there is a cycle delay from the current channel setup.
+    The function properly, the DMA Controller needs the active signals immediately when set-signals are sent out, yet there is a cycle delay from sendint the setX-signal to the channel is active.
     Therefore the setX-signals are also checked when totalActive is set.
     This is done by using setX OR activeX.
     \item[workDone - ]
@@ -219,6 +221,10 @@ If the control signal is active, the first input will have its value subtracted 
 If the control signal is not active, there will be no subtraction, and the first input value is the output value. 
 
 \subsection{Load channel}
+Channels are split into two: 
+a part responsible for issuing load commands, and a part responsible for issuing storing commands with the appropriate data.
+These are called the "load channel" and "store channel", respectively, and are not to be confused with channels 0 and 1 that are shown in figure \ref{fig:TopViewFinalSimple2IO}, as they both consist of these two sub-modules.
+  
 The load channel is responsible for generating loading requests that are sent out from the DMA.
 It can be seen in figure \ref{fig:loadChannel}.
 
@@ -243,9 +249,9 @@ The load channel have the following inputs:
     Value for LMode register
     \item[FLA -]
     32-bit value for the FLA register
-    \item[Count -]
+    \item[count -]
     32-bit value for the Counter register
-    \item[Load Ack -]
+    \item[loadAck -]
     Signal received from the arbiter, telling that the current load request is acknowledged.
 \end{description}
 
@@ -257,7 +263,7 @@ The load channel have the following registers:
     Register for loading mode, connected to the subtractor.
     \item[FLA -]
     Contains Final Load address
-    \item[Counter -]
+    \item[counter -]
     Used to count down the number of load requests to be generated. Also used to calculate offset from FLA, if LMode = '1'.
 \end{description}
 
@@ -265,11 +271,11 @@ The load channel have the following registers:
 The load channel have the following outputs:
 
 \begin{description}
-    \item[Load Adr Output -]
+    \item[loadAdrOutput -]
     34 bit signal with the address for the current load command. Is concatenated with two bits with value "00", used as MSB.
-    \item[Load Req -]
+    \item[loadReq -]
     Request signal from the load channel to the arbiter, for requesting output access to issue load command to the system.   
-    \item[Load Active -]
+    \item[loadActive -]
     Signal sent out, used to indicate that the load channel is active.
 \end{description}
 
@@ -297,7 +303,7 @@ The current design incorperates both offset and counting into one single registe
 The current address can be calculated by having a starting address that is added together with a current offset.
 Alternatively, one may use a final address and subtract it with the offset.
 If counting down, the zero-value is distinguishable from non-zero values, and can be used to know whether countdown is finished or not.
-If a counter has an increasing value, there must be an extra register that contains the final count value so that the load channel can know when the job is finished.
+If a counter has an incrementing value, there must be an extra register that contains the final count value so that the load channel can know when the job is finished.
 In order to utulize as few registers as possible for the task, the counter and offset value has been joined as one register, and the system counts down towards zero.
 This eliminates the need for any extra final count-register, since the counter can be checked for zero or non-zero values.
 This means also using the final load address and subtracting it with the offset-value from the counter, when calculating current address.
@@ -315,35 +321,34 @@ It can be seen in figure \ref{fig:storeChannel}.
     \label{fig:storeChannel}
 \end{figure}
 
-\todo{Consider if listing up inputs and outputs that are also found in the Load Channel is necessary}
 The design of the store channel have similar traits to the load channel, and inputs, registers and outputs to the store channel, which can be seen in figure \ref{fig:storeChannel}, are similar to the ones from the load channel.
 There are some distinct differences to know of:
 \begin{description}
     \item[FSA and FLA -]
-    There are both inputs and registers for the Final loading address and the final storing address.
+    Final storint address is unique to the store channel.
+    The store channel still consists of the FLA, needed to compared loaded data with origin address.
     \item[Unique inputs and outputs -]
     Not similarly found in the load channel.
-    These are the input data rdy, and the output Load Adr ID.
-    \item[Store req -]
-    Request signal from the store channel to the arbiter is not based on the counter, but on the input data ready.
+    These are the input dataRdy, and the output loadAdrID.
+    \item[storeReq and dataRdy -]
+    Request signal storeReq from the store channel to the arbiter is not based on the counter, but on the input signal dataRdy.
 \end{description}
 
-Any loads issued by the load channel cooperating with the store channel is expected to reach a data buffer shared by all channels.
+Any loads issued by the assosiated load channel is expected to reach a data buffer shared by all channels.
 All received data has an ID, informing which address in the memory the data was loaded from.
 Load Address ID, based on the FLA decremented with the counter, is compared with the ID of the next data in the buffer.
-If there is a match, the next data belongs to this channel, and a data rdy-signal is sent in.
-In this design of the store channel, the data rdy is used as request signal.
-\todo{Is this said well enough?}
+If there is a match, the next data belongs to this channel, and a dataRdy-signal is sent in.
+In this design of the store channel, the dataRdy is used as request signal.
 The reason behind this design is due to treating the Store Channel as a black box from outside, so that the if the store channel is replaced or changed in the future, the outside world does not need to know anything of it.
 Since there is a corresponding storing address for every loading address, the counter is used to calculate offsets from both FLA and FSA.
 Notice that there is no data sent into the store channel.
 The data is provided by a shared data buffer, and sent straight through the arbiter.
 The store channel sends out the storing address, together with two bits for storing commands.
-These two bits are concatenated with the address, and are the two MSBs, with values "01".
+These two bits are concatenated with the address, and are the two MSBs, with value "01".
 
 \subsection{Arbiter}
-The arbiter is used to arbitrate between all channels and the DMA Main controller, when any has \todo{Sounds stupid}outputs to send out of the system.
-For each clock cycle, it selects between a number of requests, and allows selected command and data to pass through.
+The arbiter is used to arbitrate between all channels and the DMA main controller, when any of them is ready to send out their output to the system.
+For each clock cycle, it selects between a number of requests, and allows selected command and assosiated data to pass through.
 It can be seen in figure \ref{fig:arbiter}
 
 \begin{figure}[h!]
@@ -353,35 +358,34 @@ It can be seen in figure \ref{fig:arbiter}
     \label{fig:arbiter}
 \end{figure}
 
-The arbiter receives store request and load request signals from each channel, as well as an interrupt request from the DMA Main Controller.
+The arbiter receives store request and load request signals from each channel, as well as an interrupt request from the DMA main controller.
 Each channel receives one store acknowledge signal and one load acknowledge signal from the arbiter.
-The DMA Main Controller also receives interrupt acknowledge signal from the arbiter.
+The DMA main controller also receives interrupt acknowledge signal from the arbiter.
 For each channel, there are two 34-bit command inputs, one for storing requests and one for loading requests.
-There is also a 34-bit interrupt input from the DMA Main Controller.
-All these command requests go through a 34-bit multiplexer, set by the Arbiter Controller, based on which request is acknowledged.
+There is also a 34-bit interrupt input from the DMA main controller.
+All these command requests go through a 34-bit multiplexer, set by the arbiter controller, based on which request is acknowledged.
 For instance, if a storing request from channel 1 is selected, the store details from channel 1 is the one that passes through the multiplexer and reaches CMD out.
 The data input comes from the shared data buffer, and is sent through the Data Multiplexer whenever there is a storing request that is acknowledged.
 There is also a blocking signal connected to the arbiter.
-If the blocking signal is active, then no requests will be acknowledges, and any work inside the DMA Module, whether it's a channel or the DMA Main Controller, will effectively be halted.
+If the blocking signal is active, then no requests will be acknowledges, and any work inside the DMA module, whether it's a channel or the DMA main controller, will be effectively halted.
 The system bus is expected to be the bottle neck in this design, and any outputs from the DMA Modul must not be sent out faster than the system can handle.
-Should there be any need, the system needs to be able to halt the DMA Modul in issuing any more commands until the previous command(s) can be handled. 
+Should there be any need, the system needs to be able to halt the DMA module from issuing any more commands until the previous command(s) can be handled. 
 
-The priority from the Arbiter Controller is:
+The priority from the arbiter controller is:
 \begin{itemize}
-    \item Block, then intterupt, then stores, then loads
+    \item Block, then interrupt, then store, then load
     \item If there are two stores or two loads competing, then the least recently used channel gets priority.
-    This way the commands sent out from the DMA Module will alternate between two active channels. 
+    This way the commands sent out from the DMA module will alternate between two active channels. 
     This is separate for load requests and store requests.
 \end{itemize}
 
 \subsection{Comparator}
 The comparator is used to compare the current output data's loading ID with the loading ID the requesting store channels are waiting for.
-The channel that has a match receieves a data rdy signal from the comparator. 
+The channel that has a match receieves a dataRdy-signal from the comparator. 
 
 \subsection{FIFO Data buffer}
 The implemented data buffer is a FIFO buffer.
-It is 64 bits wide, 32 bits containing the address from where the data is loaded, known as LoadID, and 32 bits containing data itself.
-\todo{Write a bit more, about purpose and reasonable depth} 
+It is 64 bits wide, 32 bits containing the address from where the data is loaded, known as loadID, and 32 bits containing the data itself.
 
 \subsection{Interaction in the two-channel setup}
 The channels are set up in a sub-module of the DMA Module, called the TwoChannelSetUpBuffered.
