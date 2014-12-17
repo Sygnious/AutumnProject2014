@@ -8,13 +8,15 @@ Bitcoin mining is a problem which is focused on solving SHA-256 hashes in
 order to find a hash with a certain numeric value. This report develops
 a prototype for accelerating the calculation of such hashes for future
 inclusion into the SHMAC architecture. Using the developed accelerator
-provides a speed-up of 19 times over a software implementation.
+provides a speed-up of 19 times over a software implementation running on
+a Microblaze processor.
 
 In addition, a DMA module is developed in order to do low-overhead memory
-transfers in the SHMAC architecture in order to increase the energy performance
-of the system by allowing CPUs to do other work or enter sleep states.
+transfers in order to increase the energy performance
+of the system by allowing CPU to do other work or enter sleep states.
 Using a DMA with the hashing accelerator provides a speed-up of 14 times over
 using a software implementation, but allows the CPU to sleep, saving power.
+The DMA is designed for future inclusion into the SHMAC architecture.
 
 \end{abstract}
 
