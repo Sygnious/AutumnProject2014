@@ -12,7 +12,7 @@ development studio, version 2014.3.
 	\label{fig:testsystem-vivado}
 \end{sidewaysfigure}
 
-The test system is controlled by a MicroBlaze microprocessor, configured to
+The test system is controlled by a MicroBlaze processor, configured to
 include the optional barrel shifter, integer divider and pattern comparator extensions.
 In order to run the XilKernel real-time operating system, the system also
 includes a simple timer module for use by the kernel.
@@ -25,8 +25,7 @@ The system runs on a 50~MHz clock which is synthesized by a clock generator
 module from a 100~MHz input clock.
 
 In order to run performance tests on the system, the DMA described in
-section \ref{sec:dma-architecture} and four
-SHA256 hashing modules are included.
+section \ref{sec:dma-architecture} and four SHA256 hashing modules were included.
 A fixed-interval timer, that generates an interrupt every second, is
 included in order to calculate the performance per second.
 
@@ -45,7 +44,7 @@ reported over the UART.
 The test software is also designed so that it can be run with a software implementation
 of the hashing algorithm instead of the hashing modules. This makes it possible
 to compare the performance when using an accelerator as compared to not using
-an accelerator.\todo{Update test software description.}
+an accelerator.
 
 \subsection{Measurements and Benchmarks}
 The most important performance measure for a Bitcoin mining system is the number
@@ -104,13 +103,13 @@ running on the MCU.
 
 \section{Evaluation}
 
-The results clearly shows the benefit of using a hashing module over doing hashing in software,
+The results clearly show the benefit of using a hashing module over doing hashing in software,
 obtaining a speedup of 19 times is over the software implementation.
 
 However, using the DMA for data transfers causes a reduction in performance, although it is still
 an improvement of 14,4 times over the software implementation. The reason for this is that the
 DMA module was initially designed to work with a word addressed bus system, increasing the
-address by 1 word for each bus request. This resulted in four requests per 32-bit word in
+address by 1 for each bus request. This resulted in four requests per 32-bit word in
 the test system, which caused the reduction in performance.
 
 However, the speed-up when using no DMA as compared to using the DMA to transfer data is only
