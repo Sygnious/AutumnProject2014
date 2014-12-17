@@ -10,9 +10,8 @@ the DMA is important to the energy efficiency of the system.
 
 With the modules inserted into SHMAC, a full bitcoin mining system can be
 constructed that can take advantage of power savings from not having to do
-the hashing and data transfers involved in software. Using SHMAC for mining
-bitcoins will possibly be the very first time a heterogeneous architecture
-is used for bitcoin mining, and will nevertheless provide useful insight
+the hashing and data transfers involved in software. In the future, using
+SHMAC for mining bitcoins will provide a useful insight
 into how complex software can benefit from running on a heterogeneous
 architecture.
 
@@ -20,7 +19,7 @@ architecture.
 \label{sec:future-work}
 
 Although the project shows the improvements obtained using an accelerator
-for hashing and data transfer, further improvements can be obtained.
+for hashing and data transfer, further improvements can still be obtained.
 
 \subsection{Optimizing the Hashing Accelerator}
 By optimizing the hashing accelerator, it is possible to create an accelerator
@@ -43,16 +42,13 @@ The system would also be smaller, including less combinatorics and registers.
 On the other hand, this makes the DMA module much more dependent on the external system, since requests are processed and set externally, not by the DMA module itself.
 Futhermore, removing the controller also constricts the possibility for the DMA module itself to be able to process different types of requests.
 In the minimum case, the only requests that it needs to handle are data transfer requests.
-But if the DMA module is implemented in the SHMAC system, and one wants an as efficient data transfer as possible, one have to consider the option of dynamicly forwarding the request.
+However, if the DMA module is implemented in the SHMAC system, and one wants an as efficient data transfer as possible, one have to consider the option of dynamically forwarding the request.
 An example would be forwarding to the DMA module that is closest to both source and destination (this option has been described in section \ref{sec:DMA-SHMAC}).
 
-Part of the purpose with the design is to make the DMA module generic, so that it can implemented in different systems.
-In order to make the design as generic as possible, a controller and an incoming request FIFO
-in case of multiple requests is therefore essential.
-
-\subsection{Correcting type of addressing: word or byte}
-In order to avoid problems related to word/byte-addressing, as was encountered in this project, the designer of the DMA module should first make check what type of addressing SHMAC uses, and adapt the DMA module if needed. 
-Alternatively, the DMA module could be expanded to do both, with addressing type configured in the request parameters.
+%\subsection{Correcting type of addressing: word or byte}
+%In order to avoid problems related to word/byte-addressing, as was encountered in this project, the designer of the DMA module should first make check what type of addressing SHMAC uses, and adapt the DMA module if needed. 
+%Alternatively, the DMA module could be expanded to do both, with addressing type configured in the request parameters.
+% - This is well detailed elsewhere in the report -K.
 
 \subsection{Improving the Bus Network}
 Since the bus network has been determined to be the bottleneck of the system, different topologies
