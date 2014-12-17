@@ -27,45 +27,43 @@ increases the throughput of the module but creates a longer critical path,
 lowering the maximum clock frequency of the circuit.
 
 Also suggested are moving certain operations to other stages of the algorithm
-execution, using block RAM for the SHA constants and using specific types of
+execution, using block RAM for the constants and using specific types of
 adders or counters.
 
 \section{DMA}
-DMA modules are commonly found in systems-on-chip. Three such systems are the
+DMA modules are commonly found in systems-on-chips. Some such systems include the
 PIC24F family of microcontrollers from Microchip, representing a common
-single-core, low-power microcontroller, and the Adapteva Epiphany, a more
-exotic multicore architecture, and the Cell processor, which relies on complex DMA transfers between its cores.
+single-core, low-power microcontroller, the Adapteva Epiphany, a more
+exotic multicore architecture, and the Cell processor, which relies on complex DMA transfers between its processor cores.
 
 \subsection{Microchip PIC24F device family}
-Microchip Inc. is a provider of microcontrollers and analog semiconductors \cite{microchip1}.
+Microchip Inc. is a provider of microcontrollers and analogue semiconductors \cite{microchip1}.
 Among their products is the PIC24F device family, which includes a DMA engine.
-The module is located on the microcontroller data bus between the CPU and DMA-enabled peripherals, with direct access to SRAM.
-The DMA controller is composed of multiple intedendent DMA channel controllers, or simply channels.
+The module is located on the microcontroller data bus between the CPU and DMA-enabled peripherals, with direct access to the SRAM.
+The DMA controller is composed of multiple independent DMA channels.
 Each channel can be independently programmed to transfer data between different areas of the data RAM, move data between single or multiple addresses, use a wide range of hardware triggers to initiate transfers, and conduct programmed transactions once or many times. 
-Numbers of channels: Up to 16.
-The communication network in the PIC24F is the SFR-bus, which is a shared media network.
+Up to 16 channels are supported.
+The communication network in the PIC24F is the SFR-bus, which is a shared bus.
 All peripherals that request data transfers are connected to this bus.
 The DMA module is controlled by a number of registers.
-For the module itself, there are registers for the engine control, for upper and lower address limit, and there is the data buffer.
-For each channel implemented, there are registers for channel control, channel interrupt control, registers for source and destination, and there is the transaction counter. 
-All channels share the same data buffer for transfers.
-\cite{microchip54}.
-
+For the module itself, there are registers for the engine control, for upper and lower address limit, and a data buffer.
+For each channel implemented, there are registers for channel control, channel interrupt control, registers for source and destination, and a transaction counter. 
+All channels share the same data buffer for transfers \cite{microchip54}.
 
 \subsection{Adapteva Epiphany}
-The Epiphany architecture by Adapteva \cite{epiphany} defines a multicore, scalable, shared-memory, parallel computing fabric.
-It consists of a 2D-array of compute nodes connected by a low-latency mesh network-on-chip.
+The Epiphany architecture by Adapteva defines a multicore, scalable, shared-memory, parallel computing fabric.
+It consists of a 2D-array of compute nodes connected by a low-latency mesh network-on-chip (NOC) called the eMesh.
 Figure \ref{fig:AdaptevaEpiphany} shows an implementation of the architecture.
-As it can be seen in the figure, every node consist of a RISC CPU, local memory, a DMA Engine and a Network interface.
+As can be seen in the figure, every node consists of a RISC CPU, local memory, a DMA engine and a network interface.
 Every node is connected to a router.
 The Epiphany architecture was designed for good performance across a broad range of applications, but excels at applications with high spatial and temporal locality of data and code.
 Examples are image processing, communication, sensor signal processing, encryption and compression.
 The 2D eMesh NOC that is used in this system handles traffic patterns in high-throughput real-time applications efficiently.
 
-The DMA engine is custom designed for the eMesh fabric, and operates at the same speed as the eMesh, so that it generates a double word transaction on every clock cycle.
-Every node in the Epiphany has a DMA engine each.
+The DMA engine is custom designed for the eMesh fabric, and operates at the same speed as the eMesh, so that it generates a double word transaction every clock cycle.
+Every node in the Epiphany has a DMA engine.
 
-The main features of the DMA Engine are: 
+The main features of the DMA engine are: 
 \begin{itemize}
     \item Two independent channels per processor node
     \item Separate specification of source/destination address configuration per descriptor and channel
@@ -74,75 +72,76 @@ The main features of the DMA Engine are:
     \item DMA descriptor chaining and hardware interrupts flagging to local CPU subsystem
 \end{itemize}
 
-The DMA transfer types are: Local to external memory, vice versa, transfer to local data in slave mode, and transfer between two external sources.
+The DMA transfer types are local to external memory, external to local memory, transfer to local data in slave mode, and transfer between two external sources.
 
-DMA Descriptors are stored in local memory, and is brought into the DMA channel configuration register when register set when DMA transfer is activated.
-Among the configuration are the source, destination, strides and counter.
-Channel 0 has higher priority than channel 1.
+DMA descriptors are stored in local memory, and is brought into the DMA channel configuration register when the DMA transfer is activated.
+Among the configuration are the source and destination addresses, strides and counter.
+Channel 0 has higher priority than channel 1 \cite{epiphany}.
 
-\begin{figure}[h!]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/AdaptevaEpiphany}
-    \caption{An implementation of the Epiphany Architecture, as seen from \cite{epiphany}}
+    \caption{An implementation of the Epiphany Architecture \cite{epiphany}}
     \label{fig:AdaptevaEpiphany}
 \end{figure}
 
 
 \subsection{Cell Processor}
-Kistler, Perrone and Petrini takes a look at the Cell Multiprocessor, developed by IBM, Sony and Toshiba, in their paper "Cell Communication Network: Built for Speed" \cite{cell}.
-As multicores have become a major trend in computer architecture, the authors stress the need for on-chip networks that provide high performance in latency and bandwidth, if the computational power of the many anvailable processing units are to be fully realized.
+Kistler, Perrone and Petrini takes a look at the Cell Multiprocessor, developed by IBM, Sony and Toshiba, in their paper ``Cell Communication Network: Built for Speed'' \cite{cell}.
+As multicores have become a major trend in computer architecture, the authors stress the need for on-chip networks that provide high performance in latency and bandwidth, if the computational power of the many available processing units are to be fully realized.
 In this paper, the authors describe the architecture of the Cell Multiprocessor, and their experiments where they test the performance of the communication network.
 One of the main components involved in the communication is the DMA engine.
 
-\begin{figure}[h!]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/CellTop}
-    \caption{Topview of the Cell Architecture, as seen from \cite{cell}}
+    \caption{Overview of the Cell Architecture \cite{cell}}
     \label{fig:CellTop}
 \end{figure}
 
 The Cell's architecture can bee seen in figure \ref{fig:CellTop}.
-The cell consists of a Power Processor Element (PPE) and 8 specialized coprocessors called Synergetic Processor Elements (SPE).
+The Cell processor consists of a Power Processor Element (PPE) and 8 specialized coprocessors called Synergetic Processor Elements (SPE).
 The PPE is the Cell's main processor.
 It is a traditional 64-bit PowerPC processor core with a vector multimedia extention (VMX) unit.
 It runs the operating system, and coordinates the SPEs.
-Each SPE consists of a synergetic processing unit (SPU) that runs SIMD instructions, and a memory flow controller (MFC).
-Each MFC consists of a DMA Controller, a memory management unit (MMU), a bus interface and an atomic unit for interfacing with other SPUs and the PPE.
-The MFC connects the SPE to the element interconnect bus (EIB), which is the interconnect network that connects all the SPEs and the PPE
-There are several ways of communication used for different purposes, but most of the communication between the SPU and other Cell elements is done through the DMA engine found on the MFC.
+Each SPE consists of a synergetic processing unit (SPU) that runs SIMD instructions and a memory flow controller (MFC).
+Each MFC consists of a DMA controller, a memory management unit (MMU), a bus interface and an atomic unit for interfacing with other SPUs and the PPE.
+The MFC connects the SPE to the element interconnect bus (EIB), which is the interconnect network that connects all the SPEs and the PPE.
+There are several types of communication used for different purposes, but most of the communication between the SPU and other Cell elements is done through the DMA engine found on the MFC.
 
-\begin{figure}[h!]
+\begin{figure}[htb]
     \centering
     \includegraphics[width=1\textwidth]{Figures/DMA/CellDMA}
     \caption{Basic flow of a DMA transfer on the Cell, as seen from \cite{cell}}
     \label{fig:CellDMA}
 \end{figure}
 
-The DMA Controller and the flow of a DMA transfer can be seen in figure \ref{fig:CellDMA}.
+The DMA controller and the flow of a DMA transfer are illustrated in \ref{fig:CellDMA}.
 The commands issued for the DMA modules are gets and puts (equivalent to loads and stores).
-A DMA command can also be a list command, which requests a list of multiple DMA transfer commands.
-These are the steps of a DMA flow, as seen in figure \ref{fig:CellDMA}:
+A DMA command can also be a list command, which requests multiple DMA transfers.
+These are the steps of the DMA flow, as seen in figure \ref{fig:CellDMA}:
 
-\begin{itemize}
-    \item \textbf{1} - DMA command is placed in the MFC SPU command queue through the channel interface.
-    \item \textbf{2} - DMAC selects a command for processing. DMA SPU queue has priority over proxy queue (commands from PPE or other devices).
-    \item \textbf{3} - If DMA command is a list command that requires a list element, the DMAC must fetch the element from the local-store interface. 
+\begin{enumerate}
+    \item DMA command is placed in the MFC SPU command queue through the channel interface.
+    \item DMA controller selects a command for processing. DMA SPU queue has priority over the proxy queue (commands from PPE or other devices).
+    \item If the DMA command is a list command that requires a list element, the DMA controller must fetch the element from the local-store interface. 
     The DMA entry is updated and must be reselected.
-    \item \textbf{4} - If required, due to use of virtual memory, the command is queued in the MMU, which performs the address translation (either through TLB or page table in main memory) and updates the DMA entry. 
-    It must then be reselected by the DMAC from the queue.
-    \item \textbf{5} - DMAC unrolls command.
+    \item If required, due to use of virtual memory, the command is queued in the MMU, which performs the address translation (either through the TLB or the page table in main memory) and updates the DMA entry. 
+    It must then be reselected by the DMA controller from the queue.
+    \item The DMA controller unrolls the command.
     Unrolling means that it creates bus requests to transfer the next block of data for the command.
     Each bus request can transfer up to 128 bytes of data.
     The bus requests are queued in the to the Bus Interface Unit (BIU).
-    \item \textbf{6} - The BIU selects a bus request, and issues it to the EIB, where the command is queue with others.
+    \item The BIU selects a bus request, and issues it to the EIB, where the command is queued with others.
     If main memory is involved, the MIC must acknowledge.
-    \item \textbf{7} - When the EIB has given permission, the BIU will perform the reads to local store.
-    Memory from MIC is transfered by the EIB.
-    \item \textbf{8} - The unrolling process produces a series of bus requests for the DMA command that pipeline through the communication network.
+    \item When the EIB has given permission, the BIU will perform the reads to local store. % "reads to local store" makes no sense
+    Memory from the MIC is transfered by the EIB.
+    \item The unrolling process produces a series of bus requests for the DMA command that are pipelined through the communication network.
     The DMA command remains in the SPU DMA queue until all the bus requests have been completed.
-    The DMAC may still process other DMA commands.
-    The SPU is notified when all bus requests are completed, and the command is removed from the queue. 
-\end{itemize}
+    The DMA controller may still process other DMA commands.
+    The SPU is notified once all bus requests are completed, and the command is removed from the queue. 
+\end{enumerate}
 
-When Kistler, Perrone and Petrini tested the performance of the communication system, they found that when using DMA from only one SPE, the highest possible bandwith when using only one SPE was measured up to 25 GB/s if message size was large enough, and latency below 100 ns if packet size was small enough.
+When Kistler, Perrone and Petrini tested the performance of the communication system, they found that when using DMA from only one SPE, the highest possible bandwith when using only one SPE was measured up to 25~GB/s if message sizes were large enough, and latency below 100~ns if packet sizes were small enough.
 The results were dependent on type, as gets or sets towards main memory or local store, and how many commands they allowed to be executed at the same time before blocking.
+
