@@ -31,7 +31,7 @@ was decided not to attempt to improve the performance of the module.
 If the hashing module can finish hashing a block of data in 65 cycles and
 every hash can be obtained from only one block of data, it is possible to
 obtain a finished hash every 65 clock cycles under ideal conditions. This
-translates into a maximum theoretical performance of 768230~H/s at a clock
+translates into a maximum theoretical performance of 768~230~H/s at a clock
 frequency of 50~MHz.
 
 However, in real-life, the modules do not exist in a vacuum, and data needs to be transferred
@@ -52,7 +52,7 @@ In total, a minimum of 67 clock cycles of overhead is needed per hash when assum
 a one-block input size and an ideal AXI4 bus. Not considering the additional overhead
 from processing in the microprocessor, such as when handlig the interrupt when the
 hashing finishes, hashing may take a minimum of $67 + 65 = 132$ clock cycles to
-complete, bringing the maximum theoretical performance down to at most 378787~H/s.
+complete, bringing the maximum theoretical performance down to at most 378~787~H/s.
 
 \section{Design of the DMA Module}
 \label{sec:dma-architecture}
@@ -62,13 +62,13 @@ To simplify the design of the DMA module, some assumptions as to the system wher
 DMA is implemented needs to be done.
 
 It is assumed that all data is transferred sequentially. 
-This is especially important when it comes to future integration into the SHMAC system, because of the XY routing that the system uses.
+This is especially important when it comes to future integration into the SHMAC system, because of the XY-routing that the system uses.
 However, such an assumption also significantly simplifies the design of the DMA for use in shared-bus systems.
 
 Any issues regarding virtual memory and cache coherency are assumed to be handled outside the DMA module.
 
-%\subsection{Design requirements}
-\subsection{Chosen functionality in design}
+\subsection{Design requirements}
+%\subsection{Chosen functionality in design}
 
 It was decided on a couple of requirements for the DMA implementation.
 
@@ -77,7 +77,7 @@ It was decided on a couple of requirements for the DMA implementation.
 	able to transfer any amount of data from locations A to B.
 	\item[Two channels.] This allows the DMA to have two separate transfers going
 	at the same time.
-	The number of channels is inspired by the Adapteva Epiphany \cite{epiphany}, where every DMA module has two generic channel each.
+	The number of channels is inspired by the Adapteva Epiphany, where every DMA module has two generic channel each \cite{epiphany}.
 	With a high number of DMA modules, a high number of channels in each DMA module is not necessary.
 	\item[Automatic channel allocation.] Channel allocation is done in hardware,
 	saving the CPU from the overhead of allocating and managing channels in software.
@@ -88,16 +88,15 @@ It was decided on a couple of requirements for the DMA implementation.
 	% Yeah.... that makes sense. You should have taken TFE4140 last spring, not every student though of component based design, as they threw together a lot of code at top-level :-P
 \end{description}
 
-\subsection{DMA Architecture}
+\subsection{Architecture Overview}
 
-The DMA module consists of several main components: a FIFO buffer that contains transfer requests from the CPU, a main controller that processes the requests and delegate them to the channels, and two channels where the memory transfers are executed.
+The DMA module consists of several main components: a FIFO buffer that contains transfer requests from the CPU, a main controller that processes the requests and delegates them to the channels, and two channels where the memory transfers are executed.
 The two channels work on independent transfer tasks.
-An arbiter is used to control access to the bus interface for the two channels and the DMA Controller, with interrupt signals from the DMA Controller having highest priority, followed by storing commands and then loading commands.
+An arbiter is used to control access to the bus interface for the two channels and the DMA Controller, with interrupt signals from the DMA controller having highest priority, followed by store commands and then load commands.
 Another FIFO buffer is used to receive and queue loaded data.
 The loaded data is compared with the requested data from the channels by checking if their addresses match. 
-An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView2}.
-The overview provided in this chapter is simplified.
-For more details about the components and interaction, and for testing and verification, see appendix \ref{app:DMA-arch}.
+An overview of the DMA architecture can be seen in figure \ref{fig:DMATopView2}. A more in-depth description
+can be found in appendix \ref{app:DMA-arch}.
 
 \begin{figure}[htb]
     \centering
@@ -125,26 +124,26 @@ Whenever there is no activity and no incoming tranfer request, the state is IDLE
 When activating a new channel for a requested transfer, the state is PROCESSING. 
 There must be a request to handle, and at least a free channel to jump to this state from any other state.
 When at least one channel is active, the state is WAIT as long as no more channels can be activated (either due to no more requests or all channels already being active).
-When sending out interrupt signal, the state is INTERRUPT.
+When sending out an interrupt signal, the state is INTERRUPT.
 
 \subsubsection{Channels}
 Each channel is split into two parts: a part that is responsible for sending out load
-commands, and a storing part that issues store commands when associated data has arrived. 
+commands, and a part that issues store commands when associated data has arrived. 
 These ``subchannels'' are called the load channel and store channel, respectively.
 They are not to be confused with channels 0 and 1 that are shown in figure \ref{fig:DMATopView2}.
 Both channels have a load channel and a store channel each.
 
 \subsubsection{Bus interaction system}
-\todo{Kristian: Is master interface and slave interface covered well enough in the appendix?}In order for the DMA module to be as general as possible, it contains only a generic
+In order for the DMA module to be as general as possible, it contains only a generic
 interface for communicating with a bus system. An adapter is then used to connect
 the module to the bus system. This makes it possible to connect the DMA module to
 different kinds of busses by simply writing an adapter for the desired system.
 
-\subsubsection{Running the DMA Module}
-\todo{Kristian: Jeg husker Yaman etterlyste dette. Finnes på 3.1.2. fra hans første tilbakemelding. Så langt jeg vet har du bedre oversikt på denne enn jeg}
-TODO:
-Yaman skrev dette på 3.1.2. på første tilbakemelding:
-
-"consider adding a small section describing what a DMA transfer looks like end-to-end, e.g how the CPU sets up the transfer, how DMA executes it and the CPU gets notified. 
-
-also make sure to underline that the way transfer requests are made is different then the traditional memory-mapped control registers with channel allocation completely managed in software."
+%\subsubsection{Running the DMA Module}
+%\todo{Kristian: Jeg husker Yaman etterlyste dette. Finnes på 3.1.2. fra hans første tilbakemelding. Så langt jeg vet har du bedre oversikt på denne enn jeg}
+%TODO:
+%Yaman skrev dette på 3.1.2. på første tilbakemelding:
+%
+%"consider adding a small section describing what a DMA transfer looks like end-to-end, e.g how the CPU sets up the transfer, how DMA executes it and the CPU gets notified. 
+%
+%also make sure to underline that the way transfer requests are made is different then the traditional memory-mapped control registers with channel allocation completely managed in software."
