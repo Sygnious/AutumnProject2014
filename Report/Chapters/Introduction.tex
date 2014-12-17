@@ -1,10 +1,9 @@
 \chapter{Introduction}
 
 This report details an exploration of the possible benefits of accelerating
-<<<<<<< HEAD
 SHA-256 hashing using an accelerator module and a DMA\footnote{\textbf{D}irect \textbf{M}emory
-\textbf{A}ccess} Engine, for possible future inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous \textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
-heterogeneous architecture consisting of different processing elements with
+\textbf{A}ccess} engine, for possible future inclusion in the SHMAC\footnote{\textbf{S}ingle-ISA \textbf{H}eterogenous \textbf{Ma}ny-core \textbf{C}omputer} research computer, which is a
+heterogeneous architecture, which consists of different processing elements with
 optional accelerators. SHMAC is further described in section \ref{sec:shmac}.
 
 \section{Original Assignment Text}
@@ -26,7 +25,7 @@ of SHMAC.
 
 \section{Bitcoin Mining as a Model Problem}
 
-Bitcoin is a virtual currency that is produced through an algorithm that
+Bitcoin is a virtual currency that is produced by an algorithm that
 requires repeatedly hashing data structures with the SHA-256 algorithm
 in order to produce a target hash value. There are more details about
 bitcoins and how they are created in section \ref{sec:bitcoins}.
@@ -49,7 +48,7 @@ to a processing element in such an architecture, or it can be implemented as
 a processing element by itself.
 
 Other parts of the processor can then offload hashing operations to the
-accelerator tiles or the accelerated processor elements and continue
+accelerator tiles or to the accelerated processor elements and continue
 working on other tasks or simply shut down, saving energy.
 
 Using a DMA module can allow further
@@ -57,12 +56,3 @@ power savings, as the processor does not have to do data transfer to
 and from the hashing accelerator by itself and can spend its time
 in a low-power sleep state instead.
 
-\section{Outline of the report}
-\todo{Kristian: Som jeg har nevnt tidligere, outlining av rapporten er noe jeg har sett gått igjen i andre artikler i TDT1. Du kan enden se over og godkjenne (evt forbedre?), eller hviske ut. -Torbjørn}
-Chapter \ref{cha:background} introduces the theory, ideas and issues related to bitcoin mining, SHA-256 hashing and DMA, and how they should fit into SHMAC.
-Chapter \ref{cha:related-work} covers related work, which have given valuble insight for this work.
-Chapter \ref{cha:architecture} presents the design and architecture for the hashing module and the DMA module.
-Chapter \ref{cha:evaluation} presents how the hashing module and the DMA were tested, and the results.
-Chapter \ref{cha:conclusion} concludes the project and lists up future work.
-
-In addition, appendix \ref{app:DMA-arch} goes into the details behind the DMA architecture at a greater length.
